@@ -1,4 +1,4 @@
-# Runs the GlobalAPI.ReplayViewer site alongside a watcher that exports any new maps dropped into
+# Runs the globalapi-replayviewer site alongside a watcher that exports any new maps dropped into
 # a game's maps folder (e.g. by a workshop sync) via SourceUtils.MapExport.
 #
 # Typical usage (prod, no local Source game install available):
@@ -78,7 +78,7 @@ services:
   replayviewer:
     build:
       context: .
-      dockerfile: GlobalAPI.ReplayViewer/Dockerfile
+      dockerfile: globalapi-replayviewer/Dockerfile
     ports:
       - "47990:80"
     volumes:

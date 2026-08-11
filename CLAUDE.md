@@ -39,7 +39,7 @@ Data flow in one sentence: `IResourceProvider` (VPK/loose files) → `SourceUtil
 `SourceUtils.MapExport.Core` converts parsed structures into JSON/binary payloads → `SourceUtils.MapExport`
 crawls the URL graph for the requested maps and dumps every payload to disk.
 
-- `GlobalAPI.ReplayViewer/` — a Nuxt 4 + shadcn-vue site that plays back GOKZ replay files over a map
+- `globalapi-replayviewer/` — a Nuxt 4 + shadcn-vue site that plays back GOKZ replay files over a map
   exported by `SourceUtils.MapExport`. It vendors the working WebGL map/replay renderer from
   `E:\repos\GOKZReplayViewer` (`public/vendor/gokz/js/*.js`, plain globals, not ESM — see
   `app/composables/useGokzEngine.ts`) rather than reimplementing a BSP renderer. `server/middleware/
