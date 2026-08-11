@@ -4,7 +4,7 @@ using ImageMagick;
 using MimeTypes;
 using OpenTK.Graphics.ES20;
 using SourceUtils.ValveBsp;
-using Ziks.WebServer;
+using SourceUtils.WebExport.Hosting;
 
 namespace SourceUtils.WebExport.Bsp
 {

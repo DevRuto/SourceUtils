@@ -5,7 +5,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using ImageMagick;
 using Newtonsoft.Json;
-using Ziks.WebServer;
+using SourceUtils.WebExport.Hosting;
 
 namespace SourceUtils.WebExport
 {

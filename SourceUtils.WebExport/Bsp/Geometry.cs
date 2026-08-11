@@ -5,7 +5,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using OpenTK;
 using SourceUtils.ValveBsp;
-using Ziks.WebServer;
+using SourceUtils.WebExport.Hosting;
 using PrimitiveType = OpenTK.Graphics.ES20.PrimitiveType;
 
 namespace SourceUtils.WebExport.Bsp

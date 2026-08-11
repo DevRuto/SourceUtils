@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using CommandLine;
 using ImageMagick;
-using Ziks.WebServer;
+using SourceUtils.WebExport.Hosting;
 
 namespace SourceUtils.WebExport
 {

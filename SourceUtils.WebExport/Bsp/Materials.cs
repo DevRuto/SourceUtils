@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using SourceUtils.ValveBsp.Entities;
-using Ziks.WebServer;
+using SourceUtils.WebExport.Hosting;
 
 namespace SourceUtils.WebExport.Bsp
 {

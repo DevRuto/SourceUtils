@@ -10,7 +10,7 @@ using System.Text;
 using MimeTypes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Ziks.WebServer;
+using SourceUtils.WebExport.Hosting;
 
 namespace SourceUtils.WebExport
 {
@@ -93,7 +93,7 @@ namespace SourceUtils.WebExport
                 return;
             }
 
-            var encoded = WebUtility.UrlEncode( url.Value ).Replace( "%2f", "/" );
+            var encoded = string.Join( "/", url.Value.Split( '/' ).Select( WebUtility.UrlEncode ) );
             var suffix = ShouldAppendVersionSuffix(url) ? $"?v={GetTimeHash()}" : "";
 
             if ( url.Export && Program.IsExporting )
@@ -385,14 +385,21 @@ namespace SourceUtils.WebExport
             }
         }
 
-        [ResponseWriter]
-        public void OnWriteObject( object obj )
+        protected internal override void WriteResult( object value, Type declaredReturnType )
         {
+            if ( declaredReturnType == typeof(void) ) return;
+
+            if ( declaredReturnType == typeof(string) )
+            {
+                OnServiceText( (string) value );
+                return;
+            }
+
             try
             {
-                OnServiceJson( obj == null ? null : JObject.FromObject( obj, _sSerializer ) );
+                OnServiceJson( value == null ? null : JObject.FromObject( value, _sSerializer ) );
             }
-            catch (HttpListenerException)
+            catch ( HttpListenerException )
             {
                 //
             }
@@ -402,7 +409,7 @@ namespace SourceUtils.WebExport
 
         protected bool Skip => Request.QueryString["skip"] == "1";
 
-        protected override void OnServiceJson( JToken token )
+        protected virtual void OnServiceJson( JToken token )
         {
             Response.ContentType = MimeTypeMap.GetMimeType( ".json" );
 
