@@ -3,13 +3,13 @@
 // forwarded as-is (steamid64, stage, etc. - see the GlobalAPI docs) with
 // offset/limit defaulted and limit clamped to what the upstream allows.
 //
-// The list endpoint alone only returns steamid64 + record_filter_id, not
-// display-friendly fields, so each entry is enriched with player/map/mode
-// info from /records/{id}.
+// Deliberately a single upstream call: the list endpoint's entries used to
+// be enriched with a per-entry /records/{id} lookup, but that fanned out to
+// N+1 concurrent requests and got the app rate-limited. Callers just get the
+// raw record id for now instead of a display-friendly player/map/mode.
 import type { GokzReplayListEntry } from '~~/shared/types/gokzReplay'
 
 const REPLAY_LIST_URL = 'https://kztimerglobal.com/api/v2.0/records/replay/list'
-const RECORD_URL = 'https://kztimerglobal.com/api/v2.0/records'
 const MAX_LIMIT = 100
 
 interface UpstreamReplayListEntry {
@@ -20,12 +20,6 @@ interface UpstreamReplayListEntry {
   points: number
   created_on: string
   replay_id: number
-}
-
-interface UpstreamRecord {
-  player_name: string
-  map_name: string
-  mode: string
 }
 
 export default defineEventHandler(async (event) => {
@@ -44,24 +38,15 @@ export default defineEventHandler(async (event) => {
 
   const entries = await $fetch<UpstreamReplayListEntry[]>(`${REPLAY_LIST_URL}?${params.toString()}`)
 
-  return Promise.all(
-    entries
-      .filter(entry => entry.replay_id)
-      .map(async (entry): Promise<GokzReplayListEntry> => {
-        const record = await $fetch<UpstreamRecord>(`${RECORD_URL}/${entry.id}`).catch(() => null)
-
-        return {
-          id: entry.id,
-          replayId: entry.replay_id,
-          steamid64: entry.steamid64,
-          playerName: record?.player_name ?? null,
-          mapName: record?.map_name ?? null,
-          mode: record?.mode ?? null,
-          time: entry.time,
-          teleports: entry.teleports,
-          points: entry.points,
-          createdOn: entry.created_on
-        }
-      })
-  )
+  return entries
+    .filter(entry => entry.replay_id)
+    .map((entry): GokzReplayListEntry => ({
+      id: entry.id,
+      replayId: entry.replay_id,
+      steamid64: entry.steamid64,
+      time: entry.time,
+      teleports: entry.teleports,
+      points: entry.points,
+      createdOn: entry.created_on
+    }))
 })
