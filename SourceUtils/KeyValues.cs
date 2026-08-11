@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Facepunch.Parse;
+using SourceUtils.Parsing;
 using SourceUtils.Properties;
 
 namespace SourceUtils

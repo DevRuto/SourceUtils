@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Facepunch.Parse\Facepunch.Parse\Facepunch.Parse.csproj" />
+    <ProjectReference Include="..\SourceUtils.Parsing\SourceUtils.Parsing.csproj" />
   </ItemGroup>
 
 </Project>

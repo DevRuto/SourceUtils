@@ -11,9 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceUtils.FileExport", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceUtils.Test", "SourceUtils.Test\SourceUtils.Test.csproj", "{B17851AD-7B29-464B-B92A-73816D6D8D7C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Facepunch.Parse", "Facepunch.Parse", "{BDF5B497-938B-7CF9-E915-8D5CB5E0A8E1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Facepunch.Parse", "Facepunch.Parse\Facepunch.Parse\Facepunch.Parse.csproj", "{A50F0BDD-D826-4033-94E0-57C31A781D0C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceUtils.Parsing", "SourceUtils.Parsing\SourceUtils.Parsing.csproj", "{A50F0BDD-D826-4033-94E0-57C31A781D0C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -88,9 +86,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{A50F0BDD-D826-4033-94E0-57C31A781D0C} = {BDF5B497-938B-7CF9-E915-8D5CB5E0A8E1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BE348FED-0C4E-4470-BCC5-59D97B802B8C}
