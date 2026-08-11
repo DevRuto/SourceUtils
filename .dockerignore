@@ -4,3 +4,7 @@
 .github/
 output/
 *.md
+**/node_modules/
+GlobalAPI.ReplayViewer/.output/
+GlobalAPI.ReplayViewer/.nuxt/
+GlobalAPI.ReplayViewer/.data/

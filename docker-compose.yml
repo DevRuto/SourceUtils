@@ -1,0 +1,55 @@
+# Runs the GlobalAPI.ReplayViewer site alongside a watcher that exports any new maps dropped into
+# a game's maps folder (e.g. by a workshop sync) via SourceUtils.MapExport.
+#
+# Typical usage (prod):
+#   GAME_DIR=/path/to/csgo docker compose up --build
+#
+# `mapexport-watch` polls ${GAME_DIR}/maps every POLL_SECONDS for .bsp files that don't have
+# exported output yet under ./output and exports just those - already-exported maps are left
+# alone. To force a one-off full (re-)export instead (e.g. after changing --url-prefix or
+# upgrading SourceUtils.MapExport), use the `mapexport` profile:
+#   GAME_DIR=/path/to/csgo MAPS=kz_reach_v2 docker compose --profile export run --rm mapexport
+#
+# `replayviewer` alone is enough once ./output already has exported map data.
+
+services:
+  mapexport-watch:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ["/usr/local/bin/watch-maps.sh"]
+    restart: unless-stopped
+    environment:
+      GAMEDIR: /gamedir
+      MAPSDIR: maps
+      OUTDIR: /out
+      URL_PREFIX: /csgo/assets
+      POLL_SECONDS: ${POLL_SECONDS:-30}
+    volumes:
+      - "${GAME_DIR}:/gamedir:ro"
+      - ./output:/out
+
+  mapexport:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles: ["export"]
+    volumes:
+      - "${GAME_DIR}:/gamedir:ro"
+      - ./output:/out
+    command:
+      - --gamedir=/gamedir
+      - --mapsdir=maps
+      - --maps=${MAPS:-kz_reach_v2}
+      - --outdir=/out
+      - --overwrite
+      - --url-prefix=/csgo/assets
+
+  replayviewer:
+    build:
+      context: .
+      dockerfile: GlobalAPI.ReplayViewer/Dockerfile
+    ports:
+      - "47990:47990"
+    volumes:
+      - ./output:/app/output:ro

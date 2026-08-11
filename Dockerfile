@@ -5,6 +5,10 @@
 # Only SourceUtils.MapExport, SourceUtils.MapExport.Core, SourceUtils, and Facepunch.Parse are
 # needed - all plain `net10.0` (unlike SourceUtils.WebExport, which targets net10.0-windows and
 # can't run here).
+#
+# Also bundles /usr/local/bin/watch-maps.sh, which polls a maps directory for new .bsp files and
+# exports each one as it appears - overridable as the container entrypoint for a long-running
+# "watch" mode instead of a one-off export (see docker-compose.yml's mapexport-watch service).
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
@@ -26,5 +30,7 @@ RUN dotnet publish SourceUtils.MapExport/SourceUtils.MapExport.csproj \
 FROM mcr.microsoft.com/dotnet/runtime:10.0
 WORKDIR /app
 COPY --from=build /app .
+COPY watch-maps.sh /usr/local/bin/watch-maps.sh
+RUN chmod +x /usr/local/bin/watch-maps.sh
 
 ENTRYPOINT ["dotnet", "SourceUtils.MapExport.dll"]
