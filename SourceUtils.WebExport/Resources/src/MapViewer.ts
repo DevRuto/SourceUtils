@@ -51,7 +51,8 @@ namespace SourceUtils {
             container.classList.add("map-viewer");
         }
 
-        loadMap(url: string): void {
+        loadMap(url: string, configUrl?: string): void {
+            Config.init(configUrl);
             this.map.load(url);
         }
 

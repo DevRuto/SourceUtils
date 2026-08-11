@@ -142,6 +142,44 @@ declare namespace SourceUtils {
     }
 }
 declare namespace SourceUtils {
+    /**
+     * Resolves the "$url" wrapper objects the server writes for every exported URL
+     * (see UrlConverter.WriteJson) against the deployment's URL prefix, fetched once
+     * from config.json.
+     *
+     * Every URL in this system originates from one of two places: a "$url" wrapper inside
+     * a JSON response, or - just once - the literal string embedded in index.html. Both are
+     * resolved to their final, prefixed form as early as possible (here), so everything
+     * downstream (page.url passed to a follow-up fetch, element.url assigned to an Image,
+     * etc.) already holds a ready-to-use absolute URL and never needs to know about prefixes.
+     *
+     * The "$url" side of that is done by patching Facepunch.Http.getJson itself, rather than
+     * requiring every caller to opt in: some URLs (e.g. the lightmap and skybox textures) are
+     * followed up by the vendored engine's own internal fetches, which have no notion of a
+     * URL prefix or the "$url" wrapper. Patching the shared fetch function means every
+     * response - ours and the engine's - gets unwrapped in the same place.
+     */
+    class Config {
+        private static configUrl;
+        private static prefix;
+        private static state;
+        private static pending;
+        private static originalGetJson;
+        static init(configUrl: string): void;
+        private static resolve;
+        private static isUrlWrapper;
+        private static resolveUrlsIn;
+        private static ensureLoaded;
+        private static patch;
+        /**
+         * For the one URL in the system that isn't already resolved: the literal
+         * mapIndexJson string embedded in index.html. Everything else should just use
+         * Facepunch.Http.getJson (patched above) directly.
+         */
+        static getJson<T>(url: string, onLoad: (value: T) => void, onError?: (error: any) => void, onProgress?: (loaded: number, total: number) => void): void;
+    }
+}
+declare namespace SourceUtils {
     import WebGame = Facepunch.WebGame;
     interface IDispGeometryPage {
         displacements: IFace[];
@@ -299,7 +337,7 @@ declare namespace SourceUtils {
         avgFrameRate: number;
         notMovedTime: number;
         constructor(container: HTMLElement);
-        loadMap(url: string): void;
+        loadMap(url: string, configUrl?: string): void;
         protected onInitialize(): void;
         private static readonly hashKeyRegex;
         private static readonly hashObjectRegex;

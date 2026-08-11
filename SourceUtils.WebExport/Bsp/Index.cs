@@ -47,6 +47,26 @@ namespace SourceUtils.WebExport.Bsp
             return str;
         }
 
+        /// <summary>
+        /// Root-relative path (e.g. "/js/sourceutils.js?v=..."), for URLs that get resolved
+        /// against the deployment's URL prefix at runtime (see SourceUtils.Config in the viewer).
+        /// </summary>
+        private static string GetAbsoluteUrl( Url url )
+        {
+            return UrlConverter.RegisterAndGetRootRelativeUrl( url );
+        }
+
+        /// <summary>
+        /// Path relative to "/maps/{map}/index.html" (e.g. "../../js/sourceutils.js?v=...").
+        /// Used for the handful of references index.html needs before any viewer JS - and so
+        /// before any URL prefix - has loaded: the bootstrap scripts/styles, and config.json
+        /// itself (which is what supplies the prefix for everything else).
+        /// </summary>
+        private static string GetPageRelativeUrl( Url url )
+        {
+            return $"../..{GetAbsoluteUrl( url )}";
+        }
+
         [Get("/index.html")]
         public string GetIndexPage( [Url] string map )
         {
@@ -65,10 +85,11 @@ namespace SourceUtils.WebExport.Bsp
 
             return ReplaceTokens( template,
                 mapName => map,
-                mapIndexJson => (Url) $"/maps/{map}/index.json",
-                facepunchWebGame => (Url) "/js/facepunch.webgame.js",
-                sourceUtils => (Url) "/js/sourceutils.js",
-                styles => (Url) "/styles/mapviewer.css" );
+                mapIndexJson => GetAbsoluteUrl( $"/maps/{map}/index.json" ),
+                facepunchWebGame => GetPageRelativeUrl( "/js/facepunch.webgame.js" ),
+                sourceUtils => GetPageRelativeUrl( "/js/sourceutils.js" ),
+                styles => GetPageRelativeUrl( "/styles/mapviewer.css" ),
+                config => GetPageRelativeUrl( "/config.json" ) );
         }
 
         private static int DefaultItemSizeSelect( int index )

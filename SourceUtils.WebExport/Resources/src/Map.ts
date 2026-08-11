@@ -61,7 +61,7 @@ namespace SourceUtils {
         }
 
         load(url: string): void {
-            Facepunch.Http.getJson<IMap>(url, info => {
+            Config.getJson<IMap>(url, info => {
                 this.onLoad(info);
             });
         }

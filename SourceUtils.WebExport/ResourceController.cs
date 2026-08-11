@@ -83,6 +83,33 @@ namespace SourceUtils.WebExport
             }
         }
 
+        public static string GetEncodedPath( Url url )
+        {
+            return string.Join( "/", url.Value.Split( '/' ).Select( WebUtility.UrlEncode ) );
+        }
+
+        public static string GetVersionSuffix( Url url )
+        {
+            return ShouldAppendVersionSuffix( url ) ? $"?v={GetTimeHash()}" : "";
+        }
+
+        public static string GetRootRelativeUrl( Url url )
+        {
+            return $"{GetEncodedPath( url )}{GetVersionSuffix( url )}";
+        }
+
+        /// <summary>
+        /// Root-relative path for <paramref name="url"/>, registering it for export if needed.
+        /// Unlike <see cref="WriteJson"/>, this returns a plain string rather than a
+        /// <c>{"$url": ...}</c> wrapper, for embedding directly into HTML/JS (e.g. index.html),
+        /// where there's no runtime JSON layer to resolve the wrapper against the URL prefix.
+        /// </summary>
+        public static string RegisterAndGetRootRelativeUrl( Url url )
+        {
+            if ( url.Export && Program.IsExporting ) Program.AddExportUrl( url );
+            return GetRootRelativeUrl( url );
+        }
+
         public override void WriteJson( JsonWriter writer, object value, JsonSerializer serializer )
         {
             var url = (Url) value;
@@ -93,15 +120,15 @@ namespace SourceUtils.WebExport
                 return;
             }
 
-            var encoded = string.Join( "/", url.Value.Split( '/' ).Select( WebUtility.UrlEncode ) );
-            var suffix = ShouldAppendVersionSuffix(url) ? $"?v={GetTimeHash()}" : "";
+            var rootRelative = RegisterAndGetRootRelativeUrl( url );
 
-            if ( url.Export && Program.IsExporting )
-            {
-                Program.AddExportUrl( url );
-                writer.WriteValue( $"{Program.ExportOptions.UrlPrefix}{encoded}{suffix}" );
-            }
-            else writer.WriteValue( $"{encoded}{suffix}" );
+            // Wrapped so the viewer can find every URL in a payload at runtime and resolve it
+            // against the deployment's URL prefix (from /config.json), instead of the prefix
+            // being baked into every exported file at export time.
+            writer.WriteStartObject();
+            writer.WritePropertyName( "$url" );
+            writer.WriteValue( rootRelative );
+            writer.WriteEndObject();
         }
 
         public override object ReadJson( JsonReader reader, Type objectType, object existingValue,
