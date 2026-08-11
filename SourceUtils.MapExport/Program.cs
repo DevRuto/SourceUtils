@@ -50,6 +50,9 @@ namespace SourceUtils.MapExport.Console
 
         [Option( "dry", HelpText = "Don't actually write any files, just test exporting." )]
         public bool DryRun { get; set; }
+
+        [Option( "url-prefix", HelpText = "Prefix written into config.json for viewers hosting the export under a sub-path (e.g. GitHub Pages)." )]
+        public string UrlPrefix { get; set; } = "";
     }
 
     /// <summary>
@@ -82,6 +85,8 @@ namespace SourceUtils.MapExport.Console
 
         static int Run( Options args )
         {
+            if ( !args.DryRun ) WriteConfig( args );
+
             var vpkNames = args.Packages.Split( new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries )
                 .Select( x => Path.IsPathRooted( x ) ? x.Trim() : Path.Combine( args.GameDir, x.Trim() ) )
                 .ToArray();
@@ -251,6 +256,28 @@ namespace SourceUtils.MapExport.Console
             System.Console.WriteLine();
             System.Console.WriteLine( $"# Finished {mapName} ({exported} exported, {skipped} skipped, {failed} failed)" );
             System.Console.WriteLine();
+        }
+
+        private class ConfigInfo
+        {
+            [Newtonsoft.Json.JsonProperty( "urlPrefix" )]
+            public string UrlPrefix { get; set; }
+        }
+
+        /// <summary>
+        /// Written once per export so a hosted viewer (or test-server.py) can find out what
+        /// sub-path prefix, if any, the export was written under.
+        /// </summary>
+        private static void WriteConfig( Options args )
+        {
+            Directory.CreateDirectory( args.OutDir );
+
+            var path = Path.Combine( args.OutDir, "config.json" );
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject(
+                new ConfigInfo { UrlPrefix = args.UrlPrefix ?? "" },
+                Newtonsoft.Json.Formatting.Indented );
+
+            File.WriteAllText( path, json );
         }
 
         private static void WriteJson( object value, Stream output )

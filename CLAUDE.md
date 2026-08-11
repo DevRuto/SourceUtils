@@ -4,95 +4,87 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-SourceUtils reads and exports Valve Source Engine file formats (BSP maps, VPK packages, MDL models,
-VTF/VMT materials) and includes a web server + TypeScript/WebGL viewer for browsing files and viewing maps
-in a browser without the game installed. Demos of exported maps live at
-https://metapyziks.github.io/SourceUtils/.
+SourceUtils reads Valve Source Engine file formats (BSP maps, VPK packages, MDL models, VTF/VMT materials)
+and exports a map's geometry, materials, textures, lightmaps, visibility, and entities as JSON/PNG. It's a
+headless CLI packaged as a Docker image — no HTTP server, no bundled viewer, no Windows dependency.
 
 ## Solution layout
 
-- `SourceUtils/` — core library. Low-level binary readers for Source engine formats: `ValveBspFile`
-  and `ValveBsp/*` (BSP lumps: geometry, displacements, static props, visibility, entities, game lump,
-  pakfile lump), `ValvePackage` (VPK reader), `StudioModelFile` (MDL), `ValveMaterialFile` (VMT),
-  `ValveTextureFile` (VTF), `ValveVertexFile`/`ValveTriangleFile`/`ValveVertexLightingFile` (VVD/VTX/VLM).
-  `ResourceLoader`/`IResourceProvider`/`FSLoader` in `ResourceLoader.cs` form the abstraction used
-  everywhere else to resolve a game asset path across VPKs and loose files without caring which.
-- `SourceUtils.WebExport/` — the main executable (`SourceUtils.WebExport.exe`). A CommandLine.Parser-based
-  CLI (see `Program.cs`) with four verbs:
-  - `host` — runs an HTTP server (via `Ziks.WebServer`) that serves BSP/VPK content converted to JSON/binary
-    on demand, plus the TypeScript viewer, so you can browse a map at `http://localhost:8080/maps/<name>/index.html`.
-  - `export` — statically exports one or more maps (wildcards like `de_*` supported) to a directory for
-    hosting on a plain file server / GitHub Pages (`Export.cs`).
-  - `modelpatch` — rewrites strings/flags inside an MDL file in place.
-  - `modelextract` — extracts material names/files referenced by an MDL.
-  Server-side controllers under `Bsp/` (`Geometry.cs`, `Materials.cs`, `Lightmap.cs`, `Visibility.cs`,
-  `BrushModel.cs`, `Entities.cs`, `AmbientCubes.cs`) each expose one facet of a `ValveBspFile` as JSON/binary
-  over HTTP; `host` and `export` share these same controllers — `export` works by internally requesting every
-  URL a client would ever fetch and writing the responses to disk (`Program.AddExportUrl`/`_sToExport` in
-  `Export.cs`), so new server endpoints are automatically exportable without extra wiring.
-  - `Resources/` is the browser-side viewer: hand-written TypeScript under `Resources/src/**/*.ts` compiles
-    (via `tsc -p Resources/`, per `Resources/tsconfig.json`) into the single bundled/vendored output
-    `Resources/js/sourceutils.js`. `Resources/js/facepunch.webgame.js` (+ its `.d.ts`) is a vendored WebGL
-    engine dependency, not built from this repo — treat it as third-party. Viewer architecture:
-    `MapViewer.ts`/`Map.ts` drive rendering; `*Loader.ts` files (`LeafGeometryLoader`, `DispGeometryLoader`,
-    `MapMaterialLoader`, `AmbientLoader`, `VisLoader`, `PagedLoader`) stream data from the corresponding
-    server/export endpoints on demand as the camera moves; `Entities/*.ts` map BSP entity classes to
-    renderable behavior; `Shaders/*.ts` mirror Source engine shader names (`LightmappedGeneric`, `Water`,
-    `UnlitGeneric`, etc.) as WebGL programs.
-- `SourceUtils.FileExport/` — a separate small CLI (`Program.cs`) for extracting/exporting individual
-  files directly to disk, independent of the web server/viewer pipeline.
-- `SourceUtils.Test/` — MSTest unit tests (currently covers `KeyValues` parsing).
+- `SourceUtils/` — core library. Low-level binary readers for Source engine formats: `ValveBspFile` and
+  `ValveBsp/*` (BSP lumps: geometry, displacements, static props, visibility, entities, game lump, pakfile
+  lump), `ValvePackage` (VPK reader), `StudioModelFile` (MDL), `ValveMaterialFile` (VMT), `ValveTextureFile`
+  (VTF), `ValveVertexFile`/`ValveTriangleFile`/`ValveVertexLightingFile` (VVD/VTX/VLM). `KeyValues.cs` parses
+  Source's KeyValues text format using `SourceUtils.Parsing`. `ResourceLoader`/`IResourceProvider`/`FSLoader`
+  in `ResourceLoader.cs` form the abstraction used everywhere else to resolve a game asset path across VPKs
+  and loose files without caring which.
+- `SourceUtils.Parsing/` — small parser-combinator library (`Parser.cs`, `GrammarBuilder.cs`,
+  `GrammarParser.cs`, etc.) used by `SourceUtils/KeyValues.cs`. Originally vendored from Facepunch.Parse,
+  now a standalone in-repo library.
+- `SourceUtils.MapExport.Core/` — turns a parsed `ValveBspFile` into exportable JSON/PNG. `Bsp/*` mirrors
+  one facet each: `Index.cs` (map index), `Geometry.cs` (leaf/displacement/studio-model/vertex-lighting
+  pages), `BrushModel.cs`, `Lightmap.cs`, `Visibility.cs`, `Entities.cs`, `AmbientCubes.cs`,
+  `MaterialPage.cs`. `Material.cs`/`Texture.cs`/`Texture.Convert.cs` handle VMT/VTF conversion to JSON/PNG
+  (via `Magick.NET`/`OpenTK`). `MapLocator.cs` finds and loads BSPs by name/glob from a maps directory.
+  `Url.cs` defines the same URL scheme a live viewer would fetch from
+  (`/maps/<name>/...`, `/materials/...`); `ExportContext.cs` holds export-wide settings (untextured mode,
+  debug materials, the active `ResourceLoader`).
+- `SourceUtils.MapExport/` — the CLI (`Program.cs`, `SourceUtils.MapExport.exe`/`.dll`). Parses options with
+  CommandLine.Parser, then crawls every URL a viewer would ever request for the given maps (starting from
+  `/maps/<name>/index.json`, following references discovered via `UrlCrawl`) and writes each response
+  straight to disk under `--outdir`, plus a `config.json` (`{"urlPrefix": "..."}`, from `--url-prefix`) at
+  the output root. It does not produce a full viewer shell (no index.html/js/css) — just the raw data and
+  that one config file.
 
 Data flow in one sentence: `IResourceProvider` (VPK/loose files) → `SourceUtils` binary format readers →
-`SourceUtils.WebExport` HTTP controllers turn parsed structures into JSON/binary responses → either served
-live (`host`) or crawled and dumped to disk (`export`) → the TypeScript viewer in `Resources/` fetches those
-same URLs and renders them with WebGL.
+`SourceUtils.MapExport.Core` converts parsed structures into JSON/binary payloads → `SourceUtils.MapExport`
+crawls the URL graph for the requested maps and dumps every payload to disk.
 
 ## Build
 
-This is a **.NET 10** solution using SDK-style `.csproj`/`PackageReference` (migrated from .NET Framework
-4.8), built with the `dotnet` CLI (matches CI in `.github/workflows/build-test.yml`):
+This is a **.NET 10** solution using SDK-style `.csproj`/`PackageReference`, built with the `dotnet` CLI
+(matches CI in `.github/workflows/build-test.yml`). All remaining projects target plain `net10.0` and are
+fully cross-platform:
 
 ```powershell
 dotnet restore SourceUtils.sln
 dotnet build SourceUtils.sln --configuration Debug
 ```
 
-`SourceUtils`, `SourceUtils.FileExport`, and `SourceUtils.Test` target plain `net10.0`; `SourceUtils.WebExport`
-targets `net10.0-windows` (it uses `System.Net.HttpListener` via `Ziks.WebServer`, which is Windows-only in
-practice here). `build.sh`/`test.sh` (Mono/`xbuild`) and the `#if LINUX` shim in
-`SourceUtils.WebExport/ImageMagick.cs` predate this migration and are stale — `dotnet build`/`dotnet run` is
-cross-platform for the non-`-windows` projects, but `SourceUtils.WebExport` itself no longer builds on
-Mono/Linux via those scripts.
+## Docker
 
-Several dependencies (`Ziks.WebServer`, `Facepunch.Parse`, `LZMA-SDK`, `MediaTypeMap`, `OpenTK`) only ship
-old .NET Framework-targeted NuGet assets; they still resolve via `PackageReference` with a `NU1701`
-compatibility warning and have been confirmed to work at runtime under .NET 10 on Windows.
-
-The TypeScript compile step is independent of the C# build and must be run separately whenever
-`Resources/src/**/*.ts` changes — `dotnet build` does not invoke `tsc`:
+The `Dockerfile` builds and runs `SourceUtils.MapExport` in a `linux-x64` container — only
+`SourceUtils.MapExport`, `SourceUtils.MapExport.Core`, `SourceUtils`, and `SourceUtils.Parsing` are needed:
 
 ```sh
-tsc -p "SourceUtils.WebExport/Resources/"
+docker build -t sourceutils-mapexport .
+docker run --rm -v "<gamedir>:/gamedir:ro" -v "<outdir>:/out" sourceutils-mapexport \
+    --gamedir /gamedir --mapsdir maps --maps <maps> --outdir /out --overwrite
 ```
 
-## Test
+`export-pages-kz-docker.bat` shows a full Windows example (mounts a local game dir, wipes and repopulates
+an `output/` folder).
 
-Tests are MSTest, run via `dotnet test`:
+## Running locally without Docker
 
 ```powershell
-dotnet test SourceUtils.Test/SourceUtils.Test.csproj
+dotnet run --project SourceUtils.MapExport -- --gamedir <path> --mapsdir maps --maps <maps> --outdir <path>
 ```
 
-To run a single test, add `--filter "FullyQualifiedName~<TestMethodName>"`.
+`--gamedir` (a real Source game's `csgo`-style folder) and `--maps` are required; there's no bundled game
+content. `--debug-pakfile` and `--debug-materials` exist specifically for diagnosing a single map's embedded
+pakfile lump or material properties — reach for them first when a specific map exports oddly. `--dry` tests
+an export without writing files (including skipping `config.json`); `--untextured` skips texture
+export/licensing concerns; `--url-prefix` sets the `urlPrefix` written into `config.json` for hosting under
+a sub-path (e.g. GitHub Pages).
 
-## Running locally
+## Testing an export
 
-`test.sh` and `Examples/host-example.bat` show the `host` verb pointed at a local CS:GO install; a
-`--gamedir` (and usually `--mapsdir`) pointing at a real Source game's `csgo`-style folder is required —
-there's no bundled game content. `export-pages.bat` / `export-pages-kz.bat` / `Examples/export-example.bat`
-show the `export` verb for static site generation, including `--untextured` (skip texture export/licensing
-concerns) and `--url-prefix` (for hosting under a sub-path like GitHub Pages).
+`test-server.py` serves a static export from `./output` for local testing, resolving the same `urlPrefix`
+from `output/config.json` that a real static host (e.g. GitHub Pages) would use, so the export behaves
+identically locally and once deployed:
 
-`DebugPakFile`/`--debug-pakfile` and `--debug-materials` options exist specifically for diagnosing a single
-map's embedded pakfile lump or material properties — reach for them first when a specific map exports oddly.
+```sh
+python test-server.py [port]
+```
+
+There is currently no automated test suite in this repo.

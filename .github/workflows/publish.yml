@@ -1,4 +1,4 @@
-name: .NET - Publish
+name: Docker - Publish
 
 on:
   push:
@@ -6,37 +6,38 @@ on:
       - 'v*.*'
   workflow_dispatch:
 
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/sourceutils-mapexport
+
 jobs:
   build:
 
-    runs-on: windows-2022
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1
-    - name: Setup NuGet
-      uses: NuGet/setup-nuget@v1.0.5
-    - name: Restore dependencies
-      run: nuget restore SourceUtils.sln
-    - name: Build
-      run: msbuild SourceUtils.sln /t:Build /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
-    - name: Create Publish Directory
-      run: |
-        New-Item -Path . -Name "Publish" -ItemType "Directory"
-        New-Item -Path "Publish" -Name "bin" -ItemType "Directory"
-        Copy-Item "README.md" -Destination "Publish"
-        Copy-Item "Examples/*" -Destination "Publish" -Recurse
-        Copy-Item "SourceUtils.WebExport/bin/Release/*" -Destination "Publish/bin" -Recurse
-        Compress-Archive -Path "Publish/*" -DestinationPath "SourceUtils.zip"
-      shell: pwsh
-    - name: Upload Release
-      if: ${{ github.event_name != 'workflow_dispatch' }}
-      uses: softprops/action-gh-release@v1
+    - uses: actions/checkout@v4
+    - name: Log in to GHCR
+      uses: docker/login-action@v3
       with:
-        files: 'SourceUtils.zip'
-    - name: Upload Artifacts
-      if: ${{ github.event_name == 'workflow_dispatch' }}
-      uses: actions/upload-artifact@v4
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Determine tags
+      id: meta
+      uses: docker/metadata-action@v5
       with:
-        path: 'SourceUtils.zip'
+        images: ${{ env.IMAGE_NAME }}
+        tags: |
+          type=semver,pattern={{version}}
+          type=raw,value=latest,enable=${{ github.event_name == 'workflow_dispatch' }}
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
