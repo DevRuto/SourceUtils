@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { formatReplayTime } from '~/lib/format'
-import { mockReplays, type MockReplay } from '~/lib/mockReplays'
+import type { GokzReplay } from '~/lib/gokzReplay'
 
 interface LoadedReplayInfo {
   mapName: string
@@ -23,7 +23,9 @@ const customUrl = ref('')
 const loadedInfo = ref<LoadedReplayInfo | null>(null)
 const isPlaying = ref(false)
 
-function loadFromList(replay: MockReplay) {
+const { replays, pending: replaysPending } = useGokzReplays()
+
+function loadFromList(replay: GokzReplay) {
   selectedId.value = replay.id
   viewer.value?.loadReplay(replay.url)
 }
@@ -72,8 +74,9 @@ function onReplayLoaded(info: LoadedReplayInfo) {
 
       <div class="flex w-80 shrink-0 flex-col gap-4 overflow-hidden">
         <GokzReplayList
-          :replays="mockReplays"
+          :replays="replays"
           :selected-id="selectedId"
+          :loading="replaysPending"
           class="min-h-0"
           @select="loadFromList"
         />
