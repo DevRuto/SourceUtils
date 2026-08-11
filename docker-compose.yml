@@ -1,18 +1,41 @@
 # Runs the GlobalAPI.ReplayViewer site alongside a watcher that exports any new maps dropped into
 # a game's maps folder (e.g. by a workshop sync) via SourceUtils.MapExport.
 #
-# Typical usage (prod):
+# Typical usage (prod, no local Source game install available):
+#   docker compose --profile gamedir run --rm gamedir   # downloads CS:GO into ./gamedir (~20-30GB)
+#   docker compose up --build
+#
+# If a Source game is already installed locally, point GAME_DIR at its csgo-style folder instead
+# of downloading one (skips the gamedir service entirely):
 #   GAME_DIR=/path/to/csgo docker compose up --build
 #
-# `mapexport-watch` polls ${GAME_DIR}/maps every POLL_SECONDS for .bsp files that don't have
-# exported output yet under ./output and exports just those - already-exported maps are left
-# alone. To force a one-off full (re-)export instead (e.g. after changing --url-prefix or
-# upgrading SourceUtils.MapExport), use the `mapexport` profile:
-#   GAME_DIR=/path/to/csgo MAPS=kz_reach_v2 docker compose --profile export run --rm mapexport
+# `mapexport-watch` polls ${GAME_DIR:-./gamedir/csgo} every POLL_SECONDS for .bsp files that
+# don't have exported output yet under ./output and exports just those - already-exported maps
+# are left alone. To force a one-off full (re-)export instead (e.g. after changing --url-prefix
+# or upgrading SourceUtils.MapExport), use the `mapexport` profile:
+#   MAPS=kz_reach_v2 docker compose --profile export run --rm mapexport
 #
-# `replayviewer` alone is enough once ./output already has exported map data.
+# `replayviewer` alone is enough once ./output already has exported map data. Re-running the
+# `gamedir` service later updates the CS:GO install in place (steamcmd validates/patches rather
+# than re-downloading from scratch).
 
 services:
+  gamedir:
+    build:
+      context: ./steamcmd
+    profiles: ["gamedir"]
+    volumes:
+      - ./gamedir:/gamedir
+    command:
+      - +force_install_dir
+      - /gamedir
+      - +login
+      - anonymous
+      - +app_update
+      - "740"
+      - validate
+      - +quit
+
   mapexport-watch:
     build:
       context: .
@@ -26,7 +49,7 @@ services:
       URL_PREFIX: /csgo/assets
       POLL_SECONDS: ${POLL_SECONDS:-30}
     volumes:
-      - "${GAME_DIR}:/gamedir:ro"
+      - "${GAME_DIR:-./gamedir/csgo}:/gamedir:ro"
       - ./output:/out
 
   mapexport:
@@ -35,7 +58,7 @@ services:
       dockerfile: Dockerfile
     profiles: ["export"]
     volumes:
-      - "${GAME_DIR}:/gamedir:ro"
+      - "${GAME_DIR:-./gamedir/csgo}:/gamedir:ro"
       - ./output:/out
     command:
       - --gamedir=/gamedir

@@ -3,6 +3,7 @@
 .git/
 .github/
 output/
+gamedir/
 *.md
 **/node_modules/
 GlobalAPI.ReplayViewer/.output/
