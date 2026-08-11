@@ -39,6 +39,16 @@ Data flow in one sentence: `IResourceProvider` (VPK/loose files) → `SourceUtil
 `SourceUtils.MapExport.Core` converts parsed structures into JSON/binary payloads → `SourceUtils.MapExport`
 crawls the URL graph for the requested maps and dumps every payload to disk.
 
+- `GlobalAPI.ReplayViewer/` — a Nuxt 4 + shadcn-vue site that plays back GOKZ replay files over a map
+  exported by `SourceUtils.MapExport`. It vendors the working WebGL map/replay renderer from
+  `E:\repos\GOKZReplayViewer` (`public/vendor/gokz/js/*.js`, plain globals, not ESM — see
+  `app/composables/useGokzEngine.ts`) rather than reimplementing a BSP renderer. `server/middleware/
+  gokz-export-assets.ts` serves `../output/maps` and `../output/materials` directly (so re-running
+  `export-pages-kz.bat` is immediately reflected with no copying) **and** unwraps every `{"$url": "..."}`
+  object (see `Url.cs`/`UrlConverter` above) back into a plain string — the vendored engine predates that
+  wrapper convention and will silently fail to load map geometry/materials without this. `npm run dev`
+  inside that folder to run it.
+
 ## Build
 
 This is a **.NET 10** solution using SDK-style `.csproj`/`PackageReference`, built with the `dotnet` CLI
