@@ -1,0 +1,216 @@
+﻿using ImageMagick;
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace SourceUtils.MapExport
+{
+    partial class Texture
+    {
+        [Flags]
+        private enum DdsHeaderFlags : uint
+        {
+            CAPS = 0x1,
+            HEIGHT = 0x2,
+            WIDTH = 0x4,
+            PITCH = 0x8,
+            PIXELFORMAT = 0x1000,
+            MIPMAPCOUNT = 0x20000,
+            LINEARSIZE = 0x80000,
+            DEPTH = 0x800000
+        }
+
+        [Flags]
+        private enum DdsCaps : uint
+        {
+            COMPLEX = 0x8,
+            MIPMAP = 0x400000,
+            TEXTURE = 0x1000
+        }
+
+        [Flags]
+        private enum DdsPixelFormatFlags
+        {
+            ALPHAPIXELS = 0x1,
+            ALPHA = 0x2,
+            FOURCC = 0x4,
+            RGB = 0x40,
+            YUV = 0x200,
+            LUMINANCE = 0x20000
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct DdsPixelFormat
+        {
+            public uint dwSize;
+            public DdsPixelFormatFlags dwFlags;
+            public uint dwFourCC;
+            public uint dwRGBBitCount;
+            public uint dwRBitMask;
+            public uint dwGBitMask;
+            public uint dwBBitMask;
+            public uint dwABitMask;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private unsafe struct DdsHeader
+        {
+            public uint dwSize;
+            public DdsHeaderFlags dwFlags;
+            public uint dwHeight;
+            public uint dwWidth;
+            public uint dwPitchOrLinearSize;
+            public uint dwDepth;
+            public uint dwMipMapCount;
+            public fixed uint dwReserved1[11];
+            public DdsPixelFormat ddspf;
+            public DdsCaps dwCaps;
+            public uint dwCaps2;
+            public uint dwCaps3;
+            public uint dwCaps4;
+            public uint dwReserved2;
+        }
+
+        private static unsafe int WriteDdsHeader( ValveTextureFile vtf, int mip, byte[] buffer )
+        {
+            var header = new DdsHeader();
+
+            int blockSize;
+            uint fourCC;
+            switch (vtf.Header.HiResFormat)
+            {
+                case TextureFormat.DXT1:
+                    blockSize = 8;
+                    fourCC = 0x31545844;
+                    break;
+                case TextureFormat.DXT3:
+                    blockSize = 16;
+                    fourCC = 0x33545844;
+                    break;
+                case TextureFormat.DXT5:
+                    blockSize = 16;
+                    fourCC = 0x35545844;
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+
+            header.dwWidth = (uint) Math.Max( 1, vtf.Header.Width >> mip );
+            header.dwHeight = (uint) Math.Max( 1, vtf.Header.Height >> mip );
+
+            header.dwSize = (uint)Unsafe.SizeOf<DdsHeader>();
+            header.dwFlags = DdsHeaderFlags.CAPS | DdsHeaderFlags.HEIGHT | DdsHeaderFlags.WIDTH | DdsHeaderFlags.PIXELFORMAT;
+            header.dwPitchOrLinearSize = (uint)(Math.Max(1, (vtf.Header.Width + 3) / 4) * blockSize);
+            header.dwDepth = 1;
+            header.dwMipMapCount = 1;
+            header.dwCaps = DdsCaps.TEXTURE;
+            header.ddspf.dwSize = (uint)Unsafe.SizeOf<DdsPixelFormat>();
+            header.ddspf.dwFlags = DdsPixelFormatFlags.FOURCC;
+            header.ddspf.dwFourCC = fourCC;
+
+            fixed (byte* bufferPtr = buffer)
+            {
+                var magicPtr = (uint*) bufferPtr;
+                var headerPtr = (DdsHeader*)(bufferPtr + sizeof(uint));
+                *magicPtr = 0x20534444;
+                *headerPtr = header;
+            }
+
+            return (int) header.dwSize + sizeof(uint);
+        }
+
+        public static MagickImage DecodeImage(ValveTextureFile vtf, int mip, int frame, int face, int zslice)
+        {
+            var dataLength = vtf.GetHiResPixelDataLength(mip);
+
+            // Let's pretend 16bpp formats are really 24bpp
+            switch (vtf.Header.HiResFormat)
+            {
+                case TextureFormat.RGB565:
+                case TextureFormat.BGR565:
+                    dataLength = dataLength * 3 / 2;
+                    break;
+            }
+
+            var totalLength = dataLength + 128;
+            var buffer = new byte[totalLength];
+
+            var offset = 0;
+            var width = Math.Max( 1, vtf.Header.Width >> mip );
+            var height = Math.Max( 1, vtf.Header.Height >> mip );
+
+            string pixelMapping;
+
+            switch ( vtf.Header.HiResFormat )
+            {
+                case TextureFormat.DXT1:
+                case TextureFormat.DXT3:
+                case TextureFormat.DXT5:
+                    pixelMapping = null;
+                    offset = WriteDdsHeader(vtf, mip, buffer);
+                    break;
+                case TextureFormat.I8:
+                    pixelMapping = "R";
+                    break;
+                case TextureFormat.IA88:
+                    pixelMapping = "PA";
+                    break;
+                case TextureFormat.BGR565:
+                case TextureFormat.BGR888:
+                    pixelMapping = "BGR";
+                    break;
+                case TextureFormat.RGB565:
+                case TextureFormat.RGB888:
+                case TextureFormat.RGB888_BLUESCREEN:
+                    pixelMapping = "RGB";
+                    break;
+                case TextureFormat.ABGR8888:
+                    pixelMapping = "ABGR";
+                    break;
+                case TextureFormat.BGRA8888:
+                    pixelMapping = "BGRA";
+                    break;
+                case TextureFormat.RGBA8888:
+                    pixelMapping = "RGBA";
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+
+            vtf.GetHiResPixelData( mip, frame, face, zslice, buffer, offset );
+
+            // Convert 16bpp to 24bpp
+            switch (vtf.Header.HiResFormat)
+            {
+                case TextureFormat.RGB565:
+                case TextureFormat.BGR565:
+                    for (var i = width * height - 1; i >= 0; --i)
+                    {
+                        var pixel = (ushort)(buffer[i * 2] | (buffer[i * 2 + 1] << 8));
+
+                        buffer[i * 3] = (byte) ((pixel & 31) / 31f * 255f);
+                        buffer[i * 3 + 1] = (byte)(((pixel >> 5) & 63) / 63f * 255f);
+                        buffer[i * 3 + 2] = (byte)(((pixel >> 11) & 31) / 31f * 255f);
+                    }
+                    break;
+            }
+
+            var img = pixelMapping == null
+                ? new MagickImage( buffer, new MagickReadSettings
+                {
+                    Width = (uint) width,
+                    Height = (uint) height,
+                    Format = MagickFormat.Dds
+                } )
+                : new MagickImage( buffer, new PixelReadSettings(
+                    (uint) width, (uint) height, StorageType.Char, pixelMapping ) );
+
+            if ( img.Width != (uint) width || img.Height != (uint) height )
+            {
+                img.Resize( new MagickGeometry( (uint) width, (uint) height ) { IgnoreAspectRatio = true } );
+            }
+
+            return img;
+        }
+    }
+}
