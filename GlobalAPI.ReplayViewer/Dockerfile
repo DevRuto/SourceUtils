@@ -7,7 +7,7 @@
 # mounted (or copied) into the sibling directory /app/output.
 #
 #   docker build -f GlobalAPI.ReplayViewer/Dockerfile -t globalapi-replayviewer .
-#   docker run --rm -p 47990:47990 -v "<repo>/output:/app/output:ro" globalapi-replayviewer
+#   docker run --rm -p 47990:80 -v "<repo>/output:/app/output:ro" globalapi-replayviewer
 #
 # See docker-compose.yml at the repo root for the intended way to run this alongside
 # SourceUtils.MapExport's output.
@@ -25,8 +25,8 @@ FROM node:22-alpine
 WORKDIR /app/viewer
 COPY --from=build /app/viewer/.output ./.output
 
-ENV NITRO_PORT=47990
+ENV NITRO_PORT=80
 ENV NITRO_HOST=0.0.0.0
-EXPOSE 47990
+EXPOSE 80
 
 CMD ["node", ".output/server/index.mjs"]

@@ -80,6 +80,6 @@ services:
       context: .
       dockerfile: GlobalAPI.ReplayViewer/Dockerfile
     ports:
-      - "47990:47990"
+      - "47990:80"
     volumes:
       - ./output:/app/output:ro
