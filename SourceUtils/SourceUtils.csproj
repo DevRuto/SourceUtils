@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Facepunch.Parse" Version="0.1.0-CI00040" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="LZMA-SDK" Version="22.1.1" />
   </ItemGroup>
@@ -17,6 +16,10 @@
     <Content Include="KeyValues.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Facepunch.Parse\Facepunch.Parse\Facepunch.Parse.csproj" />
   </ItemGroup>
 
 </Project>

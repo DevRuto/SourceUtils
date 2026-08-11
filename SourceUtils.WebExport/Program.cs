@@ -247,7 +247,7 @@ namespace SourceUtils.WebExport
             }
 
             stream.Seek(offset, SeekOrigin.Begin);
-            stream.Read(_sReadInt32Buffer, 0, sizeof(int));
+            stream.ReadExactly(_sReadInt32Buffer, 0, sizeof(int));
 
             return BitConverter.ToInt32(_sReadInt32Buffer, 0);
         }

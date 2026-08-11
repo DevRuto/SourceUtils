@@ -23,13 +23,13 @@ namespace SourceUtils.FileExport
             public string Maps { get; set; }
         }
 
-        static int Main( Options args )
+        static int Run( Options args )
         {
             var maps = args.Maps.Split( new [] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries );
 
             foreach ( var map in maps )
             {
-                
+
             }
 
             return 0;
@@ -38,7 +38,7 @@ namespace SourceUtils.FileExport
         static int Main(string[] args)
         {
             var result = Parser.Default.ParseArguments<Options>( args );
-            return result.MapResult( Main, _ => 1 );
+            return result.MapResult( Run, _ => 1 );
         }
     }
 }

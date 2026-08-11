@@ -349,7 +349,7 @@ namespace SourceUtils.ValveBsp
                     _modelDict = new string[reader.ReadInt32()];
                     for ( var i = 0; i < _modelDict.Length; ++i )
                     {
-                        reader.BaseStream.Read( charBuffer, 0, charBufferSize );
+                        reader.BaseStream.ReadExactly( charBuffer, 0, charBufferSize );
                         int end;
                         for ( end = 0; end < charBufferSize && charBuffer[end] != 0; ++end ) ;
                         _modelDict[i] = Encoding.ASCII.GetString( charBuffer, 0, end );

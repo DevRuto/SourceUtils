@@ -227,7 +227,7 @@ namespace SourceUtils
                 _sTempBuffer = new byte[size];
             }
 
-            stream.Read( _sTempBuffer, 0, (int) count );
+            stream.ReadExactly( _sTempBuffer, 0, (int) count );
         }
 
         public ValveTextureFile( Stream stream, bool onlyHeader = false )
@@ -259,13 +259,13 @@ namespace SourceUtils
                 Skip( stream, 3 );
                 readCount += 3;
 
-                stream.Read( buffer, 0, 4 );
+                stream.ReadExactly( buffer, 0, 4 );
                 readCount += 4;
 
                 var resourceCount = BitConverter.ToInt32( buffer, 0 );
 
                 // Probably padding?
-                stream.Read( buffer, 0, 8 );
+                stream.ReadExactly( buffer, 0, 8 );
                 readCount += 8;
 
                 resources = LumpReader<VtfResource>.ReadLumpFromStream( stream, resourceCount );
@@ -325,7 +325,7 @@ namespace SourceUtils
             Skip( stream, hiResEntry.Data - readCount );
 
             _hiResPixelData = new byte[offset];
-            stream.Read( _hiResPixelData, 0, offset );
+            stream.ReadExactly( _hiResPixelData, 0, offset );
         }
 
         private int GetImageDataIndex( int mipmap, int frame, int face, int zslice )

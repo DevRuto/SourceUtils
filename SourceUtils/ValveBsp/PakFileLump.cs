@@ -48,7 +48,7 @@ namespace SourceUtils
                         using ( var stream = _bspFile.GetLumpStream( LumpType ) )
                         {
                             var bytes = new byte[stream.Length];
-                            stream.Read( bytes, 0, bytes.Length );
+                            stream.ReadExactly( bytes, 0, bytes.Length );
                             File.WriteAllBytes( $"{_bspFile.Name}.pakfile.zip", bytes );
                         }
                     }
@@ -130,12 +130,12 @@ namespace SourceUtils
 
                     var properties = new byte[5];
 
-                    stream.Read( properties, 0, 2 ); // LZMA version
-                    stream.Read( properties, 0, 2 ); // Properties size
+                    stream.ReadExactly( properties, 0, 2 ); // LZMA version
+                    stream.ReadExactly( properties, 0, 2 ); // Properties size
 
                     Debug.Assert( BitConverter.ToUInt16( properties, 0 ) == 5 );
 
-                    stream.Read( properties, 0, 5 );
+                    stream.ReadExactly( properties, 0, 5 );
 
                     return LzmaDecoderStream.Decode( stream, entry.CompressedSize - 9, entry.Size, properties );
                 }

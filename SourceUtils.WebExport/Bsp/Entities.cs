@@ -210,7 +210,7 @@ namespace SourceUtils.WebExport.Bsp
         public class SkyCamera : EnvFogController
         {
             [JsonProperty( "scale" )]
-            public int Scale { get; set; }
+            public new int Scale { get; set; }
         }
 
         [Classname( "sky_camera" )]

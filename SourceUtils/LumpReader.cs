@@ -134,7 +134,7 @@ namespace SourceUtils
                 _sReadLumpBuffer = new byte[length];
             }
 
-            stream.Read(_sReadLumpBuffer, 0, length);
+            stream.ReadExactly(_sReadLumpBuffer, 0, length);
             ReadLumpToList(_sReadLumpBuffer, 0, length, dstList);
         }
     }

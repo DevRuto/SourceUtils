@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using CommandLine;
@@ -133,7 +133,7 @@ namespace SourceUtils.WebExport
 
             if ( args.DryRun ) dummyStream = new MemoryStream();
 
-            using (var client = new WebClient())
+            using (var client = new HttpClient())
             {
                 while (_sToExport.Count > 0)
                 {
@@ -164,38 +164,59 @@ namespace SourceUtils.WebExport
 
                     try
                     {
-                        using ( var input = client.OpenRead( $"http://localhost:{ExportPort}{url}{skipStr}" ) )
+                        using ( var response = client.Send( new HttpRequestMessage( HttpMethod.Get, $"http://localhost:{ExportPort}{url}{skipStr}" ) ) )
                         {
+                            if ( !response.IsSuccessStatusCode )
+                            {
+                                ++failed;
+
+                                if ( !args.Verbose ) continue;
+
+                                Console.ForegroundColor = ConsoleColor.DarkRed;
+                                Console.WriteLine( "Failed" );
+
+                                using ( var stream = response.Content.ReadAsStream() )
+                                using ( var reader = new StreamReader( stream ) )
+                                {
+                                    Console.WriteLine( reader.ReadToEnd() );
+                                }
+
+                                continue;
+                            }
+
                             if ( skip ) continue;
 
-                            long length;
-
-                            if ( !args.DryRun )
+                            using ( var input = response.Content.ReadAsStream() )
                             {
-                                using ( var output = File.Create( path ) )
+                                long length;
+
+                                if ( !args.DryRun )
                                 {
-                                    input.CopyTo( output );
-                                    length = output.Length;
+                                    using ( var output = File.Create( path ) )
+                                    {
+                                        input.CopyTo( output );
+                                        length = output.Length;
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                dummyStream.Seek( 0, SeekOrigin.Begin );
-                                dummyStream.SetLength( 0 );
-                                input.CopyTo( dummyStream );
-                                length = dummyStream.Length;
-                            }
-                            
-                            ++exported;
+                                else
+                                {
+                                    dummyStream.Seek( 0, SeekOrigin.Begin );
+                                    dummyStream.SetLength( 0 );
+                                    input.CopyTo( dummyStream );
+                                    length = dummyStream.Length;
+                                }
 
-                            if ( args.Verbose )
-                            {
-                                Console.ForegroundColor = ConsoleColor.Green;
-                                Console.WriteLine( $"Wrote {FormatFileSize( length )}" );
+                                ++exported;
+
+                                if ( args.Verbose )
+                                {
+                                    Console.ForegroundColor = ConsoleColor.Green;
+                                    Console.WriteLine( $"Wrote {FormatFileSize( length )}" );
+                                }
                             }
                         }
                     }
-                    catch ( WebException e )
+                    catch ( HttpRequestException )
                     {
                         ++failed;
 
@@ -203,16 +224,6 @@ namespace SourceUtils.WebExport
 
                         Console.ForegroundColor = ConsoleColor.DarkRed;
                         Console.WriteLine( "Failed" );
-
-                        if ( e.Response is null ) continue;
-
-                        using ( var stream = e.Response.GetResponseStream() )
-                        {
-                            using ( var reader = new StreamReader( stream ) )
-                            {
-                                Console.WriteLine( reader.ReadToEnd() );
-                            }
-                        }
                     }
                 }
             }

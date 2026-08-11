@@ -98,6 +98,16 @@ namespace SourceUtils
                 return !(a == b);
             }
 
+            public override bool Equals( object obj )
+            {
+                return this == obj;
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+
             public static implicit operator string( Entry entry )
             {
                 return entry == null || !entry.HasValue ? null : entry._value;
