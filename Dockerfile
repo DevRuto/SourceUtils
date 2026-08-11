@@ -2,7 +2,7 @@
 # shell) in a container:
 #   docker build -t sourceutils-mapexport .
 #
-# Only SourceUtils.MapExport, SourceUtils.MapExport.Core, SourceUtils, and SourceUtils.Parsing are
+# Only SourceUtils.MapExport, SourceUtils.MapExport.Core, SourceUtils, and Facepunch.Parse are
 # needed - all plain `net10.0` (unlike SourceUtils.WebExport, which targets net10.0-windows and
 # can't run here).
 
@@ -12,13 +12,13 @@ WORKDIR /src
 COPY SourceUtils.MapExport/SourceUtils.MapExport.csproj SourceUtils.MapExport/
 COPY SourceUtils.MapExport.Core/SourceUtils.MapExport.Core.csproj SourceUtils.MapExport.Core/
 COPY SourceUtils/SourceUtils.csproj SourceUtils/
-COPY SourceUtils.Parsing/SourceUtils.Parsing.csproj SourceUtils.Parsing/
+COPY Facepunch.Parse/Facepunch.Parse.csproj Facepunch.Parse/
 RUN dotnet restore SourceUtils.MapExport/SourceUtils.MapExport.csproj -r linux-x64
 
 COPY SourceUtils.MapExport/ SourceUtils.MapExport/
 COPY SourceUtils.MapExport.Core/ SourceUtils.MapExport.Core/
 COPY SourceUtils/ SourceUtils/
-COPY SourceUtils.Parsing/ SourceUtils.Parsing/
+COPY Facepunch.Parse/ Facepunch.Parse/
 
 RUN dotnet publish SourceUtils.MapExport/SourceUtils.MapExport.csproj \
     -c Release -r linux-x64 --self-contained false -o /app

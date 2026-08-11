@@ -14,12 +14,12 @@ headless CLI packaged as a Docker image — no HTTP server, no bundled viewer, n
   `ValveBsp/*` (BSP lumps: geometry, displacements, static props, visibility, entities, game lump, pakfile
   lump), `ValvePackage` (VPK reader), `StudioModelFile` (MDL), `ValveMaterialFile` (VMT), `ValveTextureFile`
   (VTF), `ValveVertexFile`/`ValveTriangleFile`/`ValveVertexLightingFile` (VVD/VTX/VLM). `KeyValues.cs` parses
-  Source's KeyValues text format using `SourceUtils.Parsing`. `ResourceLoader`/`IResourceProvider`/`FSLoader`
+  Source's KeyValues text format using `Facepunch.Parse`. `ResourceLoader`/`IResourceProvider`/`FSLoader`
   in `ResourceLoader.cs` form the abstraction used everywhere else to resolve a game asset path across VPKs
   and loose files without caring which.
-- `SourceUtils.Parsing/` — small parser-combinator library (`Parser.cs`, `GrammarBuilder.cs`,
-  `GrammarParser.cs`, etc.) used by `SourceUtils/KeyValues.cs`. Originally vendored from Facepunch.Parse,
-  now a standalone in-repo library.
+- `Facepunch.Parse/` — small parser-combinator library (`Parser.cs`, `GrammarBuilder.cs`,
+  `GrammarParser.cs`, etc.) used by `SourceUtils/KeyValues.cs`. Vendored from the original Facepunch.Parse,
+  converted to a plain SDK-style `net10.0` project.
 - `SourceUtils.MapExport.Core/` — turns a parsed `ValveBspFile` into exportable JSON/PNG. `Bsp/*` mirrors
   one facet each: `Index.cs` (map index), `Geometry.cs` (leaf/displacement/studio-model/vertex-lighting
   pages), `BrushModel.cs`, `Lightmap.cs`, `Visibility.cs`, `Entities.cs`, `AmbientCubes.cs`,
@@ -53,7 +53,7 @@ dotnet build SourceUtils.sln --configuration Debug
 ## Docker
 
 The `Dockerfile` builds and runs `SourceUtils.MapExport` in a `linux-x64` container — only
-`SourceUtils.MapExport`, `SourceUtils.MapExport.Core`, `SourceUtils`, and `SourceUtils.Parsing` are needed:
+`SourceUtils.MapExport`, `SourceUtils.MapExport.Core`, `SourceUtils`, and `Facepunch.Parse` are needed:
 
 ```sh
 docker build -t sourceutils-mapexport .

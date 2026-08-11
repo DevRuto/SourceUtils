@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceUtils", "SourceUtils\SourceUtils.csproj", "{2C5FEFA1-39BA-458E-B95C-2D8414958820}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceUtils.Parsing", "SourceUtils.Parsing\SourceUtils.Parsing.csproj", "{A50F0BDD-D826-4033-94E0-57C31A781D0C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Facepunch.Parse", "Facepunch.Parse\Facepunch.Parse.csproj", "{A50F0BDD-D826-4033-94E0-57C31A781D0C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceUtils.MapExport.Core", "SourceUtils.MapExport.Core\SourceUtils.MapExport.Core.csproj", "{68433C3B-31DF-4C43-88A3-4501FF08EC09}"
 EndProject

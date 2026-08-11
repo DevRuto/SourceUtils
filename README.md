@@ -11,7 +11,7 @@ Docker image so it can run anywhere `docker` runs.
   `StudioModelFile` (MDL), `ValveMaterialFile` (VMT), `ValveTextureFile` (VTF), and friends. The
   `ResourceLoader`/`IResourceProvider`/`FSLoader` abstraction in `ResourceLoader.cs` resolves a game asset
   path across VPKs and loose files.
-- `SourceUtils.Parsing/` — small parser-combinator library used by `KeyValues.cs` to parse Source's
+- `Facepunch.Parse/` — small parser-combinator library used by `KeyValues.cs` to parse Source's
   KeyValues text format.
 - `SourceUtils.MapExport.Core/` — turns parsed BSP data into exportable JSON/PNG (geometry pages, materials,
   textures, lightmaps, visibility, ambient lighting) — the same shape of data a browser-based viewer would
