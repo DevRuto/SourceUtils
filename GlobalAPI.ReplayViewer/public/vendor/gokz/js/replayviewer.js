@@ -1,17 +1,27 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var Gokz;
 (function (Gokz) {
+    var SeekOrigin;
     (function (SeekOrigin) {
         SeekOrigin[SeekOrigin["Begin"] = 0] = "Begin";
         SeekOrigin[SeekOrigin["Current"] = 1] = "Current";
         SeekOrigin[SeekOrigin["End"] = 2] = "End";
-    })(Gokz.SeekOrigin || (Gokz.SeekOrigin = {}));
-    var SeekOrigin = Gokz.SeekOrigin;
-    var BinaryReader = (function () {
+    })(SeekOrigin = Gokz.SeekOrigin || (Gokz.SeekOrigin = {}));
+    var BinaryReader = /** @class */ (function () {
         function BinaryReader(buffer) {
             this.buffer = buffer;
             this.view = new DataView(buffer);
@@ -29,6 +39,9 @@ var Gokz;
         };
         BinaryReader.prototype.getOffset = function () {
             return this.offset;
+        };
+        BinaryReader.prototype.getLength = function () {
+            return this.buffer.byteLength;
         };
         BinaryReader.prototype.readUint8 = function () {
             var value = this.view.getUint8(this.offset);
@@ -124,7 +137,7 @@ var Gokz;
 })(Gokz || (Gokz = {}));
 var Gokz;
 (function (Gokz) {
-    var Event = (function () {
+    var Event = /** @class */ (function () {
         function Event(sender) {
             this.handlers = [];
             this.sender = sender;
@@ -151,16 +164,17 @@ var Gokz;
         return Event;
     }());
     Gokz.Event = Event;
-    var ChangedEvent = (function (_super) {
+    var ChangedEvent = /** @class */ (function (_super) {
         __extends(ChangedEvent, _super);
         function ChangedEvent(sender, equalityComparison) {
-            _super.call(this, sender);
+            var _this = _super.call(this, sender) || this;
             if (equalityComparison != null) {
-                this.equalityComparison = equalityComparison;
+                _this.equalityComparison = equalityComparison;
             }
             else {
-                this.equalityComparison = function (a, b) { return a === b; };
+                _this.equalityComparison = function (a, b) { return a === b; };
             }
+            return _this;
         }
         ChangedEvent.prototype.reset = function () {
             this.prevValue = undefined;
@@ -177,7 +191,7 @@ var Gokz;
 })(Gokz || (Gokz = {}));
 var Gokz;
 (function (Gokz) {
-    var KeyDisplay = (function () {
+    var KeyDisplay = /** @class */ (function () {
         function KeyDisplay(viewer, container) {
             var _this = this;
             this.buttonMap = {};
@@ -310,7 +324,7 @@ var Gokz;
 })(Gokz || (Gokz = {}));
 var Gokz;
 (function (Gokz) {
-    var OptionsMenu = (function () {
+    var OptionsMenu = /** @class */ (function () {
         function OptionsMenu(viewer, container) {
             var _this = this;
             this.viewer = viewer;
@@ -361,7 +375,7 @@ var Gokz;
         OptionsMenu.prototype.addToggleOption = function (label, getter, setter, changed) {
             var option = document.createElement("div");
             option.classList.add("option");
-            option.innerHTML = label + "<div class=\"toggle\"><div class=\"knob\"></div></div>";
+            option.innerHTML = "".concat(label, "<div class=\"toggle\"><div class=\"knob\"></div></div>");
             this.optionContainer.appendChild(option);
             var toggle = option.getElementsByClassName("toggle")[0];
             var updateOption = function () {
@@ -389,7 +403,7 @@ var Gokz;
 })(Gokz || (Gokz = {}));
 var Gokz;
 (function (Gokz) {
-    var ReplayControls = (function () {
+    var ReplayControls = /** @class */ (function () {
         function ReplayControls(viewer) {
             var _this = this;
             this.playbackBarVisible = true;
@@ -453,7 +467,7 @@ var Gokz;
             playbackBar.appendChild(this.fullscreenElem);
             this.speedControlElem = document.createElement("div");
             this.speedControlElem.classList.add("speed-control");
-            this.speedControlElem.innerHTML = "<input class=\"speed-slider\" type=\"range\" min=\"0\" max=\"" + (ReplayControls.speedSliderValues.length - 1) + "\" step=\"1\">";
+            this.speedControlElem.innerHTML = "<input class=\"speed-slider\" type=\"range\" min=\"0\" max=\"".concat(ReplayControls.speedSliderValues.length - 1, "\" step=\"1\">");
             this.container.appendChild(this.speedControlElem);
             this.speedSliderElem = this.speedControlElem.getElementsByClassName("speed-slider")[0];
             this.speedSliderElem.addEventListener("input", function (ev) {
@@ -478,7 +492,7 @@ var Gokz;
                     var minutes = Math.floor(totalSeconds / 60);
                     var seconds = totalSeconds - minutes * 60;
                     var secondsString = seconds.toFixed(1);
-                    _this.timeElem.innerText = minutes + ":" + (secondsString.indexOf(".") === 1 ? "0" : "") + secondsString;
+                    _this.timeElem.innerText = "".concat(minutes, ":").concat(secondsString.indexOf(".") === 1 ? "0" : "").concat(secondsString);
                 }
                 _this.scrubberElem.valueAsNumber = tickData.tick;
             });
@@ -539,16 +553,17 @@ var Gokz;
 })(Gokz || (Gokz = {}));
 var Gokz;
 (function (Gokz) {
+    var GlobalMode;
     (function (GlobalMode) {
         GlobalMode[GlobalMode["Vanilla"] = 0] = "Vanilla";
         GlobalMode[GlobalMode["KzSimple"] = 1] = "KzSimple";
         GlobalMode[GlobalMode["KzTimer"] = 2] = "KzTimer";
-    })(Gokz.GlobalMode || (Gokz.GlobalMode = {}));
-    var GlobalMode = Gokz.GlobalMode;
+    })(GlobalMode = Gokz.GlobalMode || (Gokz.GlobalMode = {}));
+    var GlobalStyle;
     (function (GlobalStyle) {
         GlobalStyle[GlobalStyle["Normal"] = 0] = "Normal";
-    })(Gokz.GlobalStyle || (Gokz.GlobalStyle = {}));
-    var GlobalStyle = Gokz.GlobalStyle;
+    })(GlobalStyle = Gokz.GlobalStyle || (Gokz.GlobalStyle = {}));
+    var Button;
     (function (Button) {
         Button[Button["Attack"] = 1] = "Attack";
         Button[Button["Jump"] = 2] = "Jump";
@@ -575,8 +590,8 @@ var Gokz;
         Button[Button["BullRush"] = 4194304] = "BullRush";
         Button[Button["Grenade1"] = 8388608] = "Grenade1";
         Button[Button["Grenade2"] = 16777216] = "Grenade2";
-    })(Gokz.Button || (Gokz.Button = {}));
-    var Button = Gokz.Button;
+    })(Button = Gokz.Button || (Gokz.Button = {}));
+    var EntityFlag;
     (function (EntityFlag) {
         EntityFlag[EntityFlag["OnGround"] = 1] = "OnGround";
         EntityFlag[EntityFlag["Ducking"] = 2] = "Ducking";
@@ -610,9 +625,14 @@ var Gokz;
         EntityFlag[EntityFlag["TransRagdoll"] = 536870912] = "TransRagdoll";
         EntityFlag[EntityFlag["UnblockableByPlayer"] = 1073741824] = "UnblockableByPlayer";
         EntityFlag[EntityFlag["Freezing"] = -2147483648] = "Freezing";
-    })(Gokz.EntityFlag || (Gokz.EntityFlag = {}));
-    var EntityFlag = Gokz.EntityFlag;
-    var TickData = (function () {
+    })(EntityFlag = Gokz.EntityFlag || (Gokz.EntityFlag = {}));
+    var ReplayType;
+    (function (ReplayType) {
+        ReplayType[ReplayType["Run"] = 0] = "Run";
+        ReplayType[ReplayType["Cheater"] = 1] = "Cheater";
+        ReplayType[ReplayType["Jump"] = 2] = "Jump";
+    })(ReplayType = Gokz.ReplayType || (Gokz.ReplayType = {}));
+    var TickData = /** @class */ (function () {
         function TickData() {
             this.position = new Facepunch.Vector3();
             this.angles = new Facepunch.Vector2();
@@ -626,34 +646,265 @@ var Gokz;
         return TickData;
     }());
     Gokz.TickData = TickData;
-    var ReplayFile = (function () {
+    function remapV2Buttons(encoded) {
+        var buttons = 0;
+        if (encoded & 16 /* V2EncodedFlag.Attack */)
+            buttons |= Button.Attack;
+        if (encoded & 32 /* V2EncodedFlag.Attack2 */)
+            buttons |= Button.Attack2;
+        if (encoded & 64 /* V2EncodedFlag.Jump */)
+            buttons |= Button.Jump;
+        if (encoded & 128 /* V2EncodedFlag.Duck */)
+            buttons |= Button.Duck;
+        if (encoded & 256 /* V2EncodedFlag.Forward */)
+            buttons |= Button.Forward;
+        if (encoded & 512 /* V2EncodedFlag.Back */)
+            buttons |= Button.Back;
+        if (encoded & 1024 /* V2EncodedFlag.Left */)
+            buttons |= Button.Left;
+        if (encoded & 2048 /* V2EncodedFlag.Right */)
+            buttons |= Button.Right;
+        if (encoded & 4096 /* V2EncodedFlag.MoveLeft */)
+            buttons |= Button.MoveLeft;
+        if (encoded & 8192 /* V2EncodedFlag.MoveRight */)
+            buttons |= Button.MoveRight;
+        if (encoded & 16384 /* V2EncodedFlag.Reload */)
+            buttons |= Button.Reload;
+        if (encoded & 32768 /* V2EncodedFlag.Speed */)
+            buttons |= Button.Speed;
+        if (encoded & 65536 /* V2EncodedFlag.Use */)
+            buttons |= Button.Use;
+        if (encoded & 131072 /* V2EncodedFlag.BullRush */)
+            buttons |= Button.BullRush;
+        return buttons;
+    }
+    function remapV2Flags(encoded) {
+        var flags = 0;
+        if (encoded & 262144 /* V2EncodedFlag.OnGround */)
+            flags |= EntityFlag.OnGround;
+        if (encoded & 524288 /* V2EncodedFlag.Ducking */)
+            flags |= EntityFlag.Ducking;
+        if (encoded & 1048576 /* V2EncodedFlag.Swim */)
+            flags |= EntityFlag.Swim;
+        return flags;
+    }
+    var ReplayFile = /** @class */ (function () {
         function ReplayFile(data) {
+            // Format version 2 only: ticks are delta-compressed against the
+            // previous tick, so they can't be randomly seeked into - the whole
+            // replay is decoded up front in the constructor instead.
+            this.v2Ticks = null;
             var reader = this.reader = new Gokz.BinaryReader(data);
             var magic = reader.readInt32();
             if (magic !== ReplayFile.MAGIC) {
                 throw "Unrecognised replay file format.";
             }
             this.formatVersion = reader.readUint8();
-            this.pluginVersion = reader.readString();
-            this.mapName = reader.readString();
-            this.course = reader.readInt32();
-            this.mode = reader.readInt32();
-            this.style = reader.readInt32();
-            this.time = reader.readFloat32();
-            this.teleportsUsed = reader.readInt32();
-            this.steamId = reader.readInt32();
-            this.steamId2 = reader.readString();
-            reader.readString();
-            this.playerName = reader.readString();
-            this.tickCount = reader.readInt32();
-            this.tickRate = Math.round(this.tickCount / this.time); // todo
-            this.firstTickOffset = reader.getOffset();
-            this.tickSize = 7 * 4;
+            switch (this.formatVersion) {
+                case ReplayFile.FORMAT_VERSION_1: {
+                    var header = this.readFormatVersion1Header();
+                    this.pluginVersion = header.pluginVersion;
+                    this.replayType = ReplayType.Run;
+                    this.mapName = header.mapName;
+                    this.course = header.course;
+                    this.mode = header.mode;
+                    this.style = header.style;
+                    this.time = header.time;
+                    this.teleportsUsed = header.teleportsUsed;
+                    this.steamId = header.steamId;
+                    this.steamId2 = header.steamId2;
+                    this.playerName = header.playerName;
+                    this.tickCount = header.tickCount;
+                    this.tickRate = Math.round(this.tickCount / this.time); // todo
+                    this.firstTickOffset = reader.getOffset();
+                    this.tickSize = 7 * 4;
+                    break;
+                }
+                case ReplayFile.FORMAT_VERSION_2: {
+                    var header = this.readFormatVersion2Header();
+                    this.pluginVersion = header.gokzVersion;
+                    this.replayType = header.replayType;
+                    this.mapName = header.mapName;
+                    this.course = header.course;
+                    this.mode = header.mode;
+                    this.style = header.style;
+                    this.time = header.time;
+                    this.teleportsUsed = header.teleportsUsed;
+                    this.steamId = header.steamId;
+                    this.steamId2 = "";
+                    this.playerName = header.playerName;
+                    this.tickRate = Math.round(header.tickRate);
+                    // tickCount is provisional until decodeV2Ticks() below
+                    // finds out how many ticks are actually recoverable from
+                    // the file (see the truncation note in that function).
+                    this.tickCount = header.tickCount;
+                    this.firstTickOffset = reader.getOffset();
+                    this.tickSize = 0;
+                    this.v2Ticks = this.decodeV2Ticks(header.tickCount);
+                    break;
+                }
+                default:
+                    throw "Unsupported replay format version: ".concat(this.formatVersion, ". Only versions 1 and 2 are known.");
+            }
         }
+        ReplayFile.prototype.readFormatVersion1Header = function () {
+            var reader = this.reader;
+            var pluginVersion = reader.readString();
+            var mapName = reader.readString();
+            var course = reader.readInt32();
+            var mode = reader.readInt32();
+            var style = reader.readInt32();
+            var time = reader.readFloat32();
+            var teleportsUsed = reader.readInt32();
+            var steamId = reader.readInt32();
+            var steamId2 = reader.readString();
+            reader.readString();
+            var playerName = reader.readString();
+            var tickCount = reader.readInt32();
+            return { pluginVersion: pluginVersion, mapName: mapName, course: course, mode: mode, style: style, time: time, teleportsUsed: teleportsUsed, steamId: steamId, steamId2: steamId2, playerName: playerName, tickCount: tickCount };
+        };
+        // Mirrors FillGeneralHeader()/WriteGeneralHeader() in recording.sp
+        // and LoadFormatVersion2Replay() in playback.sp field-for-field.
+        ReplayFile.prototype.readFormatVersion2Header = function () {
+            var reader = this.reader;
+            var replayType = reader.readUint8();
+            var gokzVersion = reader.readString();
+            var mapName = reader.readString();
+            reader.readInt32(); // mapFileSize
+            reader.readInt32(); // serverIP
+            reader.readInt32(); // timestamp
+            var playerName = reader.readString();
+            var steamId = reader.readInt32();
+            var mode = reader.readUint8();
+            var style = reader.readUint8();
+            reader.readFloat32(); // playerSensitivity
+            reader.readFloat32(); // playerMYaw
+            var tickRate = reader.readFloat32();
+            var tickCount = reader.readInt32();
+            reader.readInt32(); // equippedWeapon
+            reader.readInt32(); // equippedKnife
+            var time = 0;
+            var course = 0;
+            var teleportsUsed = 0;
+            switch (replayType) {
+                case ReplayType.Run:
+                    time = reader.readFloat32();
+                    course = reader.readUint8();
+                    teleportsUsed = reader.readInt32();
+                    break;
+                case ReplayType.Cheater:
+                    reader.readUint8(); // ACReason
+                    time = tickRate > 0 ? tickCount / tickRate : 0;
+                    break;
+                case ReplayType.Jump:
+                    reader.readUint8(); // jumpType
+                    reader.readFloat32(); // distance
+                    reader.readInt32(); // blockDistance
+                    reader.readUint8(); // strafeCount
+                    reader.readFloat32(); // sync
+                    reader.readFloat32(); // pre
+                    reader.readFloat32(); // max
+                    reader.readInt32(); // airtime
+                    time = tickRate > 0 ? tickCount / tickRate : 0;
+                    break;
+                default:
+                    throw "Unrecognised replay type: ".concat(replayType, ". Only Run (0), Cheater (1) and Jump (2) are known.");
+            }
+            return { replayType: replayType, gokzVersion: gokzVersion, mapName: mapName, playerName: playerName, steamId: steamId, mode: mode, style: style, tickRate: tickRate, tickCount: tickCount, time: time, course: course, teleportsUsed: teleportsUsed };
+        };
+        // Decodes every tick up front, since format version 2 delta-encodes
+        // each tick against the previous one (only fields that changed are
+        // present in the file), which rules out getTickData() seeking
+        // directly to an arbitrary tick the way format version 1 can.
+        //
+        // Only origin/angles/flags are tracked here because those are the
+        // only fields any consumer of TickData reads; every other delta
+        // field (velocity, mouse, packets/sec, ...) still has to be read off
+        // the stream to keep it aligned, but its value is discarded.
+        ReplayFile.prototype.decodeV2Ticks = function (declaredTickCount) {
+            var reader = this.reader;
+            var fileLength = reader.getLength();
+            var originX = new Float32Array(declaredTickCount);
+            var originY = new Float32Array(declaredTickCount);
+            var originZ = new Float32Array(declaredTickCount);
+            var anglesX = new Float32Array(declaredTickCount);
+            var anglesY = new Float32Array(declaredTickCount);
+            var buttons = new Int32Array(declaredTickCount);
+            var flags = new Int32Array(declaredTickCount);
+            var curOriginX = 0, curOriginY = 0, curOriginZ = 0;
+            var curAnglesX = 0, curAnglesY = 0;
+            var curEncodedFlags = 0;
+            var actualTickCount = 0;
+            tickLoop: for (var tick = 0; tick < declaredTickCount; ++tick) {
+                if (reader.getOffset() + 4 > fileLength)
+                    break; // truncated file
+                var deltaFlags = reader.readInt32();
+                for (var field = 1; field < 20 /* RPDelta.BlockSize */; ++field) {
+                    if ((deltaFlags & (1 << field)) === 0)
+                        continue;
+                    if (reader.getOffset() + 4 > fileLength)
+                        break tickLoop; // truncated mid-tick
+                    switch (field) {
+                        case 7 /* RPDelta.OriginX */:
+                            curOriginX = reader.readFloat32();
+                            break;
+                        case 8 /* RPDelta.OriginY */:
+                            curOriginY = reader.readFloat32();
+                            break;
+                        case 9 /* RPDelta.OriginZ */:
+                            curOriginZ = reader.readFloat32();
+                            break;
+                        case 10 /* RPDelta.AnglesX */:
+                            curAnglesX = reader.readFloat32();
+                            break;
+                        case 11 /* RPDelta.AnglesY */:
+                            curAnglesY = reader.readFloat32();
+                            break;
+                        case 16 /* RPDelta.Flags */:
+                            curEncodedFlags = reader.readInt32();
+                            break;
+                        default:
+                            reader.readInt32();
+                            break; // unused field, consume and discard
+                    }
+                }
+                // Matches the same "oversized replay full of trailing 0s"
+                // heuristic LoadFormatVersion2Replay() in playback.sp uses.
+                if (curOriginX === 0 && curOriginY === 0 && curOriginZ === 0 && curAnglesX === 0 && curAnglesY === 0) {
+                    break;
+                }
+                originX[tick] = curOriginX;
+                originY[tick] = curOriginY;
+                originZ[tick] = curOriginZ;
+                anglesX[tick] = curAnglesX;
+                anglesY[tick] = curAnglesY;
+                buttons[tick] = remapV2Buttons(curEncodedFlags);
+                flags[tick] = remapV2Flags(curEncodedFlags);
+                actualTickCount = tick + 1;
+            }
+            this.tickCount = actualTickCount;
+            return {
+                originX: originX.subarray(0, actualTickCount),
+                originY: originY.subarray(0, actualTickCount),
+                originZ: originZ.subarray(0, actualTickCount),
+                anglesX: anglesX.subarray(0, actualTickCount),
+                anglesY: anglesY.subarray(0, actualTickCount),
+                buttons: buttons.subarray(0, actualTickCount),
+                flags: flags.subarray(0, actualTickCount)
+            };
+        };
         ReplayFile.prototype.getTickData = function (tick, data) {
             if (data === undefined)
                 data = new TickData();
             data.tick = tick;
+            if (this.v2Ticks !== null) {
+                var ticks = this.v2Ticks;
+                data.position.set(ticks.originX[tick], ticks.originY[tick], ticks.originZ[tick]);
+                data.angles.set(ticks.anglesX[tick], ticks.anglesY[tick]);
+                data.buttons = ticks.buttons[tick];
+                data.flags = ticks.flags[tick];
+                return data;
+            }
             var reader = this.reader;
             reader.seek(this.firstTickOffset + this.tickSize * tick, Gokz.SeekOrigin.Begin);
             reader.readVector3(data.position);
@@ -666,6 +917,8 @@ var Gokz;
             return tick < 0 ? 0 : tick >= this.tickCount ? this.tickCount - 1 : tick;
         };
         ReplayFile.MAGIC = 0x676F6B7A;
+        ReplayFile.FORMAT_VERSION_1 = 1;
+        ReplayFile.FORMAT_VERSION_2 = 2;
         return ReplayFile;
     }());
     Gokz.ReplayFile = ReplayFile;
@@ -678,68 +931,67 @@ var Gokz;
     /**
      * Creates a GOKZ replay viewer applet.
      */
-    var ReplayViewer = (function (_super) {
+    var ReplayViewer = /** @class */ (function (_super) {
         __extends(ReplayViewer, _super);
         /**
          * Creates a new ReplayViewer inside the given `container` element.
          * @param container Element that should contain the viewer.
          */
         function ReplayViewer(container) {
-            var _this = this;
-            _super.call(this, container);
+            var _this = _super.call(this, container) || this;
             /**
              * If true, the current tick will be stored in the address hash when
              * playback is paused or the viewer uses the playback bar to skip
              * around.
              * @default `true`
              */
-            this.saveTickInHash = true;
+            _this.saveTickInHash = true;
             /**
              * The current tick being shown during playback, starting with 0 for
              * the first tick. Will automatically be increased while playing,
              * although some ticks might be skipped depending on playback speed and
              * frame rate. Can be set to skip to a particular tick.
              */
-            this.tick = -1;
+            _this.tick = -1;
             /**
              * Current playback rate, measured in seconds per second. Can support
              * negative values for rewinding.
              * @default `1.0`
              */
-            this.playbackRate = 1.0;
+            _this.playbackRate = 1.0;
             /**
              * If true, the replay will automatically loop back to the first tick
              * when it reaches the end.
              * @default `true`
              */
-            this.autoRepeat = true;
+            _this.autoRepeat = true;
             /**
              * Used internally to temporarily pause playback while the user is
              * dragging the scrubber in the playback bar.
              */
-            this.isScrubbing = false;
+            _this.isScrubbing = false;
             /**
              * If true, the currently displayed tick will advance based on the
              * value of `playbackRate`.
              * @default `false`
              */
-            this.isPlaying = false;
+            _this.isPlaying = false;
             /**
              * If true, a crosshair graphic will be displayed in the middle of the
              * viewer.
              * @default `true`
              */
-            this.showCrosshair = true;
+            _this.showCrosshair = true;
             /**
              * If true, makes the key press display visible.
              * @default `true`
              */
-            this.showKeyDisplay = true;
+            _this.showKeyDisplay = true;
             /**
              * If true, makes the options menu visible.
              * @default `false`
              */
-            this.showOptions = false;
+            _this.showOptions = false;
             /**
              * Event invoked when a new replay is loaded. Will be invoked before
              * the map for the replay is loaded (if required).
@@ -748,7 +1000,7 @@ var Gokz;
              * * `replay: Gokz.ReplayFile` - The newly loaded ReplayFile
              * * `sender: Gokz.ReplayViewer` - This ReplayViewer
              */
-            this.replayLoaded = new Gokz.Event(this);
+            _this.replayLoaded = new Gokz.Event(_this);
             /**
              * Event invoked after each update.
              *
@@ -756,7 +1008,7 @@ var Gokz;
              * * `dt: number` - Time since the last update
              * * `sender: Gokz.ReplayViewer` - This ReplayViewer
              */
-            this.updated = new Gokz.Event(this);
+            _this.updated = new Gokz.Event(_this);
             /**
              * Event invoked when the current tick has changed.
              *
@@ -764,7 +1016,7 @@ var Gokz;
              * * `tickData: Gokz.TickData` - Recorded data for the current tick
              * * `sender: Gokz.ReplayViewer` - This ReplayViewer
              */
-            this.tickChanged = new Gokz.ChangedEvent(this);
+            _this.tickChanged = new Gokz.ChangedEvent(_this);
             /**
              * Event invoked when playback has skipped to a different tick, for
              * example when the user uses the scrubber.
@@ -773,7 +1025,7 @@ var Gokz;
              * * `oldTick: number` - The previous value of `tick` before skipping
              * * `sender: Gokz.ReplayViewer` - This ReplayViewer
              */
-            this.playbackSkipped = new Gokz.Event(this);
+            _this.playbackSkipped = new Gokz.Event(_this);
             /**
              * Event invoked when `playbackRate` changes.
              *
@@ -781,7 +1033,7 @@ var Gokz;
              * * `playbackRate: number` - The new playback rate
              * * `sender: Gokz.ReplayViewer` - This ReplayViewer
              */
-            this.playbackRateChanged = new Gokz.ChangedEvent(this);
+            _this.playbackRateChanged = new Gokz.ChangedEvent(_this);
             /**
              * Event invoked when `isPlaying` changes, for example when the user
              * pauses or resumes playback.
@@ -790,7 +1042,7 @@ var Gokz;
              * * `isPlaying: boolean` - True if currently playing
              * * `sender: Gokz.ReplayViewer` - This ReplayViewer
              */
-            this.isPlayingChanged = new Gokz.ChangedEvent(this);
+            _this.isPlayingChanged = new Gokz.ChangedEvent(_this);
             /**
              * Event invoked when `showCrosshair` changes.
              *
@@ -798,7 +1050,7 @@ var Gokz;
              * * `showCrosshair: boolean` - True if crosshair is now visible
              * * `sender: Gokz.ReplayViewer` - This ReplayViewer
              */
-            this.showCrosshairChanged = new Gokz.ChangedEvent(this);
+            _this.showCrosshairChanged = new Gokz.ChangedEvent(_this);
             /**
              * Event invoked when `showKeyDisplay` changes.
              *
@@ -806,7 +1058,7 @@ var Gokz;
              * * `showKeyDisplay: boolean` - True if keyDisplay is now visible
              * * `sender: Gokz.ReplayViewer` - This ReplayViewer
              */
-            this.showKeyDisplayChanged = new Gokz.ChangedEvent(this);
+            _this.showKeyDisplayChanged = new Gokz.ChangedEvent(_this);
             /**
              * Event invoked when `showOptions` changes.
              *
@@ -814,7 +1066,7 @@ var Gokz;
              * * `showOptions: boolean` - True if options menu is now visible
              * * `sender: Gokz.ReplayViewer` - This ReplayViewer
              */
-            this.showOptionsChanged = new Gokz.ChangedEvent(this);
+            _this.showOptionsChanged = new Gokz.ChangedEvent(_this);
             /**
              * Event invoked when `cameraMode` changes.
              *
@@ -822,26 +1074,26 @@ var Gokz;
              * * `cameraMode: SourceUtils.CameraMode` - Camera mode value
              * * `sender: Gokz.ReplayViewer` - This ReplayViewer
              */
-            this.cameraModeChanged = new Gokz.ChangedEvent(this);
-            this.pauseTime = 1.0;
-            this.spareTime = 0;
-            this.prevTick = undefined;
-            this.tickData = new Gokz.TickData();
-            this.tempTickData0 = new Gokz.TickData();
-            this.tempTickData1 = new Gokz.TickData();
-            this.tempTickData2 = new Gokz.TickData();
-            this.ignoreMouseUp = true;
-            this.saveCameraPosInHash = false;
-            this.controls = new Gokz.ReplayControls(this);
-            this.keyDisplay = new Gokz.KeyDisplay(this, this.controls.playbackBarElem);
-            this.options = new Gokz.OptionsMenu(this, this.controls.playbackBarElem);
+            _this.cameraModeChanged = new Gokz.ChangedEvent(_this);
+            _this.pauseTime = 1.0;
+            _this.spareTime = 0;
+            _this.prevTick = undefined;
+            _this.tickData = new Gokz.TickData();
+            _this.tempTickData0 = new Gokz.TickData();
+            _this.tempTickData1 = new Gokz.TickData();
+            _this.tempTickData2 = new Gokz.TickData();
+            _this.ignoreMouseUp = true;
+            _this.saveCameraPosInHash = false;
+            _this.controls = new Gokz.ReplayControls(_this);
+            _this.keyDisplay = new Gokz.KeyDisplay(_this, _this.controls.playbackBarElem);
+            _this.options = new Gokz.OptionsMenu(_this, _this.controls.playbackBarElem);
             var crosshair = document.createElement("div");
             crosshair.classList.add("crosshair");
             container.appendChild(crosshair);
-            this.showCrosshairChanged.addListener(function (showCrosshair) {
+            _this.showCrosshairChanged.addListener(function (showCrosshair) {
                 crosshair.hidden = !showCrosshair;
             });
-            this.isPlayingChanged.addListener(function (isPlaying) {
+            _this.isPlayingChanged.addListener(function (isPlaying) {
                 if (!isPlaying && _this.saveTickInHash)
                     _this.updateTickHash();
                 if (isPlaying) {
@@ -856,7 +1108,7 @@ var Gokz;
                     _this.wakeLock = null;
                 }
             });
-            this.cameraModeChanged.addListener(function (mode) {
+            _this.cameraModeChanged.addListener(function (mode) {
                 if (mode === SourceUtils.CameraMode.FreeCam) {
                     _this.isPlaying = false;
                 }
@@ -868,6 +1120,7 @@ var Gokz;
                     document.exitPointerLock();
                 }
             });
+            return _this;
         }
         /**
          * Used to display an error message in the middle of the viewer.
@@ -888,13 +1141,13 @@ var Gokz;
          */
         ReplayViewer.prototype.loadReplay = function (url) {
             var _this = this;
-            console.log("Downloading: " + url);
+            console.log("Downloading: ".concat(url));
             var req = new XMLHttpRequest();
             req.open("GET", url, true);
             req.responseType = "arraybuffer";
             req.onload = function (ev) {
                 if (req.status !== 200) {
-                    _this.showMessage("Unable to download replay: " + req.statusText);
+                    _this.showMessage("Unable to download replay: ".concat(req.statusText));
                     return;
                 }
                 var arrayBuffer = req.response;
@@ -907,7 +1160,7 @@ var Gokz;
                         _this.replay = new Gokz.ReplayFile(arrayBuffer);
                     }
                     catch (e) {
-                        _this.showMessage("Unable to read replay: " + e);
+                        _this.showMessage("Unable to read replay: ".concat(e));
                     }
                 }
             };
@@ -1004,7 +1257,7 @@ var Gokz;
                 }
                 var version = new Date().getTime().toString(16);
                 this.currentMapName = replay.mapName;
-                this.loadMap(this.mapBaseUrl + "/" + replay.mapName + "/index.json?v=" + version);
+                this.loadMap("".concat(this.mapBaseUrl, "/").concat(replay.mapName, "/index.json?v=").concat(version));
             }
         };
         ReplayViewer.prototype.onUpdateFrame = function (dt) {
@@ -1082,20 +1335,20 @@ var Gokz;
 })(Gokz || (Gokz = {}));
 var Gokz;
 (function (Gokz) {
-    var RouteLine = (function (_super) {
+    var RouteLine = /** @class */ (function (_super) {
         __extends(RouteLine, _super);
         function RouteLine(map, replay) {
-            _super.call(this, map, { classname: "route_line", clusters: null });
-            this.isVisible = false;
-            this.segments = new Array(Math.ceil(replay.tickCount / RouteLine.segmentTicks));
+            var _this = _super.call(this, map, { classname: "route_line", clusters: null }) || this;
+            _this.isVisible = false;
+            _this.segments = new Array(Math.ceil(replay.tickCount / RouteLine.segmentTicks));
             var tickData = new Gokz.TickData();
             var progressScale = 16 / replay.tickRate;
             var lastPos = new Facepunch.Vector3();
             var currPos = new Facepunch.Vector3();
-            for (var i = 0; i < this.segments.length; ++i) {
+            for (var i = 0; i < _this.segments.length; ++i) {
                 var firstTick = i * RouteLine.segmentTicks;
                 var lastTick = Math.min((i + 1) * RouteLine.segmentTicks, replay.tickCount - 1);
-                var segment = this.segments[i] = {
+                var segment = _this.segments[i] = {
                     debugLine: new WebGame.DebugLine(map.viewer),
                     clusters: {}
                 };
@@ -1124,6 +1377,7 @@ var Gokz;
                 }
                 debugLine.update();
             }
+            return _this;
         }
         Object.defineProperty(RouteLine.prototype, "visible", {
             get: function () {
@@ -1141,7 +1395,7 @@ var Gokz;
                 }
                 this.map.viewer.forceDrawListInvalidation(true);
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         RouteLine.prototype.onPopulateDrawList = function (drawList, clusters) {
@@ -1176,7 +1430,7 @@ var Gokz;
 })(Gokz || (Gokz = {}));
 var Gokz;
 (function (Gokz) {
-    var Utils = (function () {
+    var Utils = /** @class */ (function () {
         function Utils() {
         }
         Utils.deltaAngle = function (a, b) {
