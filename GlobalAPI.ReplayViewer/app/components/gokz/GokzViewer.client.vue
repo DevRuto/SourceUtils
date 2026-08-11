@@ -42,6 +42,8 @@ onMounted(async () => {
     // so hide the "choose a replay" placeholder ourselves once one loads.
     if (viewer.messageElem) viewer.messageElem.style.display = 'none'
 
+    console.log('[gokz] replay metadata', replay)
+
     emit('replay-loaded', {
       mapName: replay.mapName,
       playerName: replay.playerName,
