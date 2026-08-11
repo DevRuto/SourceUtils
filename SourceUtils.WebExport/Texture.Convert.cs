@@ -139,53 +139,39 @@ namespace SourceUtils.WebExport
             var width = Math.Max( 1, vtf.Header.Width >> mip );
             var height = Math.Max( 1, vtf.Header.Height >> mip );
 
-            var readSettings = new MagickReadSettings
-            {
-                Width = width,
-                Height = height
-            };
+            string pixelMapping;
 
             switch ( vtf.Header.HiResFormat )
             {
                 case TextureFormat.DXT1:
                 case TextureFormat.DXT3:
                 case TextureFormat.DXT5:
-                    readSettings.Format = MagickFormat.Dds;
+                    pixelMapping = null;
                     offset = WriteDdsHeader(vtf, mip, buffer);
                     break;
                 case TextureFormat.I8:
-                    readSettings.Format = MagickFormat.Gray;
-                    readSettings.PixelStorage = new PixelStorageSettings
-                    {
-                        StorageType = StorageType.Char,
-                        Mapping = "R"
-                    };
+                    pixelMapping = "R";
                     break;
                 case TextureFormat.IA88:
-                    readSettings.Format = MagickFormat.Gray;
-                    readSettings.PixelStorage = new PixelStorageSettings
-                    {
-                        StorageType = StorageType.Char,
-                        Mapping = "PA"
-                    };
+                    pixelMapping = "PA";
                     break;
                 case TextureFormat.BGR565:
                 case TextureFormat.BGR888:
-                    readSettings.PixelStorage = new PixelStorageSettings(StorageType.Char, "BGR");
+                    pixelMapping = "BGR";
                     break;
                 case TextureFormat.RGB565:
                 case TextureFormat.RGB888:
                 case TextureFormat.RGB888_BLUESCREEN:
-                    readSettings.PixelStorage = new PixelStorageSettings(StorageType.Char, "RGB");
+                    pixelMapping = "RGB";
                     break;
                 case TextureFormat.ABGR8888:
-                    readSettings.PixelStorage = new PixelStorageSettings(StorageType.Char, "ABGR");
+                    pixelMapping = "ABGR";
                     break;
                 case TextureFormat.BGRA8888:
-                    readSettings.PixelStorage = new PixelStorageSettings(StorageType.Char, "BGRA");
+                    pixelMapping = "BGRA";
                     break;
                 case TextureFormat.RGBA8888:
-                    readSettings.PixelStorage = new PixelStorageSettings(StorageType.Char, "RGBA");
+                    pixelMapping = "RGBA";
                     break;
                 default:
                     throw new NotImplementedException();
@@ -209,11 +195,19 @@ namespace SourceUtils.WebExport
                     break;
             }
 
-            var img = new MagickImage( buffer, readSettings );
+            var img = pixelMapping == null
+                ? new MagickImage( buffer, new MagickReadSettings
+                {
+                    Width = (uint) width,
+                    Height = (uint) height,
+                    Format = MagickFormat.Dds
+                } )
+                : new MagickImage( buffer, new PixelReadSettings(
+                    (uint) width, (uint) height, StorageType.Char, pixelMapping ) );
 
-            if ( img.Width != width || img.Height != height )
+            if ( img.Width != (uint) width || img.Height != (uint) height )
             {
-                img.Resize( new MagickGeometry( width, height ) { IgnoreAspectRatio = true } );
+                img.Resize( new MagickGeometry( (uint) width, (uint) height ) { IgnoreAspectRatio = true } );
             }
 
             return img;

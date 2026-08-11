@@ -107,7 +107,7 @@ namespace SourceUtils.WebExport
 
                     for (var c = 0; c < oldImage.ChannelCount; ++c)
                     {
-                        if ( oldPixel[c] != newPixel[c] ) return false;
+                        if ( oldPixel[(uint) c] != newPixel[(uint) c] ) return false;
                     }
                 }
             }

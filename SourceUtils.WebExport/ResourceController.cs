@@ -7,7 +7,6 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
-using System.Web;
 using MimeTypes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -94,7 +93,7 @@ namespace SourceUtils.WebExport
                 return;
             }
 
-            var encoded = HttpUtility.UrlEncode( url.Value ).Replace( "%2f", "/" ).Replace( "+", "%20" );
+            var encoded = WebUtility.UrlEncode( url.Value ).Replace( "%2f", "/" );
             var suffix = ShouldAppendVersionSuffix(url) ? $"?v={GetTimeHash()}" : "";
 
             if ( url.Export && Program.IsExporting )

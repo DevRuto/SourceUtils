@@ -3,7 +3,7 @@ using System.CodeDom;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Web;
+using System.Net;
 using Newtonsoft.Json;
 using OpenTK.Graphics.ES20;
 using Ziks.WebServer;
@@ -403,7 +403,7 @@ namespace SourceUtils.WebExport
         {
             var path = Request.Url.AbsolutePath.Substring( Request.Url.AbsolutePath.IndexOf( "/materials" ) + 1 );
 
-            path = HttpUtility.UrlDecode( path.Substring( 0, path.Length - ".json".Length ) );
+            path = WebUtility.UrlDecode( path.Substring( 0, path.Length - ".json".Length ) );
 
             var bsp = map == null ? null : Program.GetMap( map );
 

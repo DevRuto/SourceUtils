@@ -93,12 +93,8 @@ namespace SourceUtils.WebExport.Bsp
                     }
                 }
 
-                using ( var img = new MagickImage( pixels, new MagickReadSettings
-                {
-                    Width = width,
-                    Height = height,
-                    PixelStorage = new PixelStorageSettings( StorageType.Char, "BGRA" )
-                } ) )
+                using ( var img = new MagickImage( pixels, new PixelReadSettings(
+                    (uint) width, (uint) height, StorageType.Char, "BGRA" ) ) )
                 {
                     img.Write( Response.OutputStream, MagickFormat.Png );
                 }

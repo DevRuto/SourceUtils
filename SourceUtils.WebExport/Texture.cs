@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text.RegularExpressions;
-using System.Web;
 using ImageMagick;
 using Newtonsoft.Json;
 using Ziks.WebServer;
@@ -187,7 +187,7 @@ namespace SourceUtils.WebExport
         public static string GetTexturePath(string url)
         {
             var path = url.Substring(url.IndexOf("/materials") + 1);
-            return HttpUtility.UrlDecode(path.Substring(0, path.Length - ".json".Length));
+            return WebUtility.UrlDecode(path.Substring(0, path.Length - ".json".Length));
         }
 
         [Get( MatchAllUrl = false, Extension = ".vtf.json" )]
@@ -211,7 +211,7 @@ namespace SourceUtils.WebExport
             var absolute = Request.Url.AbsolutePath;
             var pathStart = absolute.IndexOf( "/materials" ) + 1;
             var pathEnd = absolute.IndexOf( ".vtf", pathStart ) + ".vtf".Length;
-            var path = HttpUtility.UrlDecode( absolute.Substring( pathStart, pathEnd - pathStart ) );
+            var path = WebUtility.UrlDecode( absolute.Substring( pathStart, pathEnd - pathStart ) );
 
             var fileName = Path.GetFileName( absolute );
             var match = _sFileNameRegex.Match( fileName );
