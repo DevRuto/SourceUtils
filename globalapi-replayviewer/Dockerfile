@@ -24,6 +24,7 @@ RUN npm run build
 FROM node:22-alpine
 WORKDIR /app/viewer
 COPY --from=build /app/viewer/.output ./.output
+COPY --from=build /app/viewer/server/data ./server/data
 
 ENV NITRO_PORT=80
 ENV NITRO_HOST=0.0.0.0
