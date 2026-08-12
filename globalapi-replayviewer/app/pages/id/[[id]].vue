@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, useTemplateRef } from 'vue'
+import { ref, useTemplateRef, watch } from 'vue'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
@@ -23,17 +23,24 @@ const customUrl = ref('')
 const loadedInfo = ref<LoadedReplayInfo | null>(null)
 const isPlaying = ref(false)
 
+const route = useRoute()
+const router = useRouter()
+
 const { replays, pending: replaysPending } = useGokzReplays()
 
-function loadFromList(replay: GokzReplay) {
+function loadFromList(replay: GokzReplay, { updateUrl = true } = {}) {
   selectedId.value = replay.id
   viewer.value?.loadReplay(replay.url)
+  if (updateUrl) {
+    router.replace(`/id/${replay.id}`)
+  }
 }
 
 function loadFromUrl() {
   if (!customUrl.value.trim()) return
   selectedId.value = null
   viewer.value?.loadReplay(customUrl.value.trim())
+  router.replace('/id')
 }
 
 function onFileChange(event: Event) {
@@ -44,7 +51,27 @@ function onFileChange(event: Event) {
   selectedId.value = null
   viewer.value?.loadReplay(URL.createObjectURL(file))
   input.value = ''
+  router.replace('/id')
 }
+
+let initialReplayHandled = false
+
+// Auto-load the replay named in the URL (/id/<id>) once both the replay
+// list and the (client-only) viewer component are ready.
+watch(
+  [replays, viewer],
+  ([list, viewerInstance]) => {
+    if (initialReplayHandled || !viewerInstance || list.length === 0) return
+    initialReplayHandled = true
+
+    const wanted = route.params.id
+    if (typeof wanted !== 'string') return
+
+    const match = list.find(replay => replay.id === wanted)
+    if (match) loadFromList(match, { updateUrl: false })
+  },
+  { immediate: true }
+)
 
 function onReplayLoaded(info: LoadedReplayInfo) {
   loadedInfo.value = info

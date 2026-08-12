@@ -10,6 +10,9 @@ export default defineNuxtConfig({
     }
   },
   css: ['~/assets/css/main.css'],
+  routeRules: {
+    '/': { redirect: '/id' }
+  },
   vite: {
     plugins: [tailwindcss()]
   }

@@ -28,6 +28,7 @@ const emit = defineEmits<{
 
 const container = ref<HTMLElement | null>(null)
 let viewer: any = null
+let pendingUrl: string | null = null
 
 onMounted(async () => {
   const Gokz = await useGokzEngine()
@@ -60,10 +61,18 @@ onMounted(async () => {
   })
 
   viewer.animate()
+
+  if (pendingUrl) {
+    loadReplay(pendingUrl)
+    pendingUrl = null
+  }
 })
 
 function loadReplay(url: string) {
-  if (!viewer) return
+  if (!viewer) {
+    pendingUrl = url
+    return
+  }
   viewer.isPlaying = true
   viewer.loadReplay(url)
 }
