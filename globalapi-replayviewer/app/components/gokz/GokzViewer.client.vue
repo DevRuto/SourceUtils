@@ -36,7 +36,7 @@ onMounted(async () => {
 
   viewer = new Gokz.ReplayViewer(container.value)
   viewer.mapBaseUrl = props.mapBaseUrl
-  viewer.showMessage('Choose a replay from the list, or load your own, to get started.')
+  viewer.showMessage('Choose a replay from the list to get started.')
 
   viewer.replayLoaded.addListener((replay: any) => {
     // The engine only ever sets the message overlay text (never clears it),

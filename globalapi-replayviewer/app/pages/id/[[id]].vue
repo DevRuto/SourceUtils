@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import { nextTick, ref, useTemplateRef, watch } from 'vue'
-import { Button } from '~/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
 import { formatReplayTime } from '~/lib/format'
 import type { GokzReplay } from '~/lib/gokzReplay'
 import type { GokzReplayListFilters } from '~~/shared/types/gokzReplay'
@@ -20,7 +16,6 @@ interface LoadedReplayInfo {
 
 const viewer = useTemplateRef('viewer')
 const selectedId = ref<string | null>(null)
-const customUrl = ref('')
 const loadedInfo = ref<LoadedReplayInfo | null>(null)
 const isPlaying = ref(false)
 
@@ -85,24 +80,6 @@ function loadFromList(replay: GokzReplay) {
   router.replace({ path: `/id/${replay.id}`, query: route.query })
 }
 
-function loadFromUrl() {
-  if (!customUrl.value.trim()) return
-  selectedId.value = null
-  playReplay(customUrl.value.trim())
-  router.replace({ path: '/id', query: route.query })
-}
-
-function onFileChange(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
-
-  selectedId.value = null
-  playReplay(URL.createObjectURL(file))
-  input.value = ''
-  router.replace({ path: '/id', query: route.query })
-}
-
 // The single place that loads a replay named in the URL (/id/<id>) - by id
 // directly, rather than waiting for it to show up in the (paginated/
 // filtered) recent-replays list, since the linked replay is very often
@@ -160,36 +137,6 @@ function onReplayLoaded(info: LoadedReplayInfo) {
           class="min-h-0"
           @select="loadFromList"
         />
-
-        <Card>
-          <CardHeader>
-            <CardTitle class="text-sm font-medium text-muted-foreground">Load from URL</CardTitle>
-          </CardHeader>
-          <CardContent class="flex flex-col gap-2">
-            <Label for="replay-url" class="sr-only">Replay URL</Label>
-            <Input
-              id="replay-url"
-              v-model="customUrl"
-              placeholder="https://example.com/my-run.replay"
-              @keydown.enter="loadFromUrl"
-            />
-            <Button size="sm" @click="loadFromUrl">Load replay</Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle class="text-sm font-medium text-muted-foreground">Upload a replay</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <input
-              type="file"
-              accept=".replay"
-              class="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none file:mr-2 file:h-6 file:rounded-md file:border-0 file:bg-secondary file:px-2 file:text-xs file:font-medium file:text-secondary-foreground"
-              @change="onFileChange"
-            >
-          </CardContent>
-        </Card>
       </div>
     </div>
   </div>
