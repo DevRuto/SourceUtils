@@ -135,3 +135,14 @@
     @apply font-sans;
     }
 }
+
+/* The vendored GOKZ engine's key-display HUD shows which keyboard keys
+   (WASD/duck/jump) are pressed - meaningless on a touchscreen, and its
+   fixed 296x248 size dominates a small viewport. It's toggled via inline
+   `style.display` from JS (Gokz.KeyDisplay.show/hide), so `!important` is
+   needed here to win over that on mobile. */
+@media (max-width: 767px) {
+  .map-viewer .key-display {
+    display: none !important;
+  }
+}

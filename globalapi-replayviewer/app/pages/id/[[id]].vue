@@ -108,18 +108,18 @@ function onReplayLoaded(info: LoadedReplayInfo) {
 
 <template>
   <div class="flex h-full w-full flex-col bg-background text-foreground">
-    <header class="flex h-14 shrink-0 items-center justify-between border-b px-4">
-      <h1 class="text-sm font-semibold">GlobalAPI.ReplayViewer</h1>
-      <p v-if="loadedInfo" class="text-sm text-muted-foreground">
+    <header class="flex min-h-14 shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b px-4 py-2">
+      <h1 class="shrink-0 text-sm font-semibold">GlobalAPI.ReplayViewer</h1>
+      <p v-if="loadedInfo" class="min-w-0 text-xs text-muted-foreground sm:text-sm">
         {{ loadedInfo.playerName }} &middot; {{ loadedInfo.mapName }} &middot;
         {{ formatReplayTime(loadedInfo.time) }} &middot; {{ loadedInfo.modeName?.toUpperCase() }} &middot;
         {{ loadedInfo.teleportsUsed === 0 ? 'PRO' : 'NUB' }}
       </p>
-      <p v-else class="text-sm text-muted-foreground">No replay loaded</p>
+      <p v-else class="text-xs text-muted-foreground sm:text-sm">No replay loaded</p>
     </header>
 
-    <div class="flex flex-1 gap-4 overflow-hidden p-4">
-      <div class="relative min-w-0 flex-1 overflow-hidden rounded-lg border bg-black">
+    <div class="flex flex-1 flex-col gap-4 overflow-hidden p-4 md:flex-row">
+      <div class="relative min-h-64 w-full min-w-0 flex-1 overflow-hidden rounded-lg border bg-black">
         <GokzViewer
           :key="viewerKey"
           ref="viewer"
@@ -128,7 +128,7 @@ function onReplayLoaded(info: LoadedReplayInfo) {
         />
       </div>
 
-      <div class="flex w-80 shrink-0 flex-col gap-4 overflow-hidden">
+      <div class="flex w-full flex-1 flex-col gap-4 overflow-hidden md:w-80 md:flex-none md:shrink-0">
         <GokzReplayList
           v-model:filters="replayFilters"
           :replays="replays"

@@ -61,7 +61,7 @@ function onProChange(event: Event) {
           <li v-for="replay in replays" :key="replay.id">
             <button
               type="button"
-              class="w-full rounded-md border px-3 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              class="w-full rounded-md border px-3 py-2.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
               :class="selectedId === replay.id ? 'border-primary bg-accent' : 'border-transparent'"
               @click="emit('select', replay)"
             >

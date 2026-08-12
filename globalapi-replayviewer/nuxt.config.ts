@@ -6,7 +6,10 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   app: {
     head: {
-      htmlAttrs: { class: 'dark' }
+      htmlAttrs: { class: 'dark' },
+      meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+      ]
     }
   },
   css: ['~/assets/css/main.css'],

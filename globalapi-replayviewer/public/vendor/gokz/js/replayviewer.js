@@ -1097,14 +1097,20 @@ var Gokz;
                 if (!isPlaying && _this.saveTickInHash)
                     _this.updateTickHash();
                 if (isPlaying) {
-                    _this.wakeLock = navigator.wakeLock;
-                    if (_this.wakeLock != null) {
-                        _this.wakeLock.request("display");
+                    if (navigator.wakeLock) {
+                        navigator.wakeLock.request("display").then(function (sentinel) {
+                            if (_this.isPlaying) {
+                                _this.wakeLock = sentinel;
+                            }
+                            else {
+                                sentinel.release();
+                            }
+                        });
                     }
                     _this.cameraMode = SourceUtils.CameraMode.Fixed;
                 }
                 else if (_this.wakeLock != null) {
-                    _this.wakeLock.release("display");
+                    _this.wakeLock.release();
                     _this.wakeLock = null;
                 }
             });
