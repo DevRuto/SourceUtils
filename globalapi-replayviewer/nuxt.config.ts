@@ -10,6 +10,12 @@ export default defineNuxtConfig({
     }
   },
   css: ['~/assets/css/main.css'],
+  components: [
+    {
+      path: '~/components',
+      ignore: ['ui/**']
+    }
+  ],
   routeRules: {
     '/': { redirect: '/id' }
   },
