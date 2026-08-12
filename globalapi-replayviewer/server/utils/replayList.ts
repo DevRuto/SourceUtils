@@ -1,13 +1,11 @@
 import { promises as fs } from 'node:fs'
 import { join } from 'node:path'
-import type { GokzReplayListFilters } from '~~/shared/types/gokzReplay'
 
-// The GlobalAPI replay list dump this repo ships at the project root
-// (../replay_list.json relative to this Nuxt app - same process.cwd()-based
-// convention as server/middleware/gokz-export-assets.ts). It's ~73k records
-// / ~1.3MB, so it's read once and cached per server process instead of on
-// every request.
-const REPLAY_LIST_PATH = join(process.cwd(), '..', 'replay_list.json')
+// The GlobalAPI replay list dump this repo ships at server/data/ (same
+// process.cwd()-based convention as server/middleware/gokz-export-assets.ts).
+// It's ~73k records / ~34MB, so it's read once and cached per server
+// process instead of on every request.
+const REPLAY_LIST_PATH = join(process.cwd(), 'server', 'data', 'replay_list.json')
 
 export interface ReplayListRecord {
   replay_id: number
