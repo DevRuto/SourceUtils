@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, useTemplateRef, watch } from 'vue'
+import { nextTick, ref, useTemplateRef, watch } from 'vue'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { formatReplayTime } from '~/lib/format'
 import type { GokzReplay } from '~/lib/gokzReplay'
+import type { GokzReplayListFilters } from '~~/shared/types/gokzReplay'
 
 interface LoadedReplayInfo {
   mapName: string
@@ -26,21 +27,69 @@ const isPlaying = ref(false)
 const route = useRoute()
 const router = useRouter()
 
-const { replays, pending: replaysPending } = useGokzReplays()
-
-function loadFromList(replay: GokzReplay, { updateUrl = true } = {}) {
-  selectedId.value = replay.id
-  viewer.value?.loadReplay(replay.url)
-  if (updateUrl) {
-    router.replace(`/id/${replay.id}`)
+// Filters live in the URL query string (?map=...&player=...) rather than
+// component-local state, so they're shareable/bookmarkable and survive
+// navigating to/from a replay.
+function filtersFromQuery(query: typeof route.query): GokzReplayListFilters {
+  return {
+    map: typeof query.map === 'string' ? query.map : undefined,
+    player: typeof query.player === 'string' ? query.player : undefined,
+    mode: typeof query.mode === 'string' ? query.mode : undefined,
+    steamid64: typeof query.steamid64 === 'string' ? query.steamid64 : undefined,
+    stage: typeof query.stage === 'string' ? Number(query.stage) : undefined,
+    pro: query.pro === 'true' ? true : undefined
   }
+}
+
+function queryFromFilters(filters: GokzReplayListFilters) {
+  return {
+    map: filters.map || undefined,
+    player: filters.player || undefined,
+    mode: filters.mode || undefined,
+    steamid64: filters.steamid64 || undefined,
+    stage: filters.stage !== undefined ? String(filters.stage) : undefined,
+    pro: filters.pro ? 'true' : undefined
+  }
+}
+
+const replayFilters = ref<GokzReplayListFilters>(filtersFromQuery(route.query))
+const { replays, pending: replaysPending } = useGokzReplays(30, replayFilters)
+
+// The vendored engine can't load a second replay into an existing viewer
+// instance (its Map.unload() is unimplemented and throws), so every replay
+// load forces <GokzViewer> to remount via this key instead of reusing one.
+const viewerKey = ref(0)
+
+async function playReplay(url: string) {
+  loadedInfo.value = null
+  viewerKey.value++
+  await nextTick()
+  viewer.value?.loadReplay(url)
+}
+
+watch(
+  replayFilters,
+  (value) => {
+    router.replace({ query: { ...queryFromFilters(value) } })
+  },
+  { deep: true }
+)
+
+function loadFromList(replay: GokzReplay) {
+  // Just navigate - the route watcher below is the single place that sets
+  // selectedId and calls playReplay. Triggering both from here too used to
+  // race it: a slow-to-resolve navigation from an earlier click could fire
+  // the watcher with a stale id after a newer click's viewer instance was
+  // already created, replaying an old URL into it and re-tripping the
+  // engine's "Map unloading not implemented" crash.
+  router.replace({ path: `/id/${replay.id}`, query: route.query })
 }
 
 function loadFromUrl() {
   if (!customUrl.value.trim()) return
   selectedId.value = null
-  viewer.value?.loadReplay(customUrl.value.trim())
-  router.replace('/id')
+  playReplay(customUrl.value.trim())
+  router.replace({ path: '/id', query: route.query })
 }
 
 function onFileChange(event: Event) {
@@ -49,26 +98,28 @@ function onFileChange(event: Event) {
   if (!file) return
 
   selectedId.value = null
-  viewer.value?.loadReplay(URL.createObjectURL(file))
+  playReplay(URL.createObjectURL(file))
   input.value = ''
-  router.replace('/id')
+  router.replace({ path: '/id', query: route.query })
 }
 
-let initialReplayHandled = false
-
-// Auto-load the replay named in the URL (/id/<id>) once both the replay
-// list and the (client-only) viewer component are ready.
+// The single place that loads a replay named in the URL (/id/<id>) - by id
+// directly, rather than waiting for it to show up in the (paginated/
+// filtered) recent-replays list, since the linked replay is very often
+// older than whatever page of "recent" results happens to be loaded. Runs
+// for every route change (not just the first), since the page component is
+// kept alive across navigations (app.vue's static page-key) rather than
+// remounted, and also runs when `viewer` changes on its own (e.g. right
+// after this watcher's own playReplay() remounts <GokzViewer>) - the
+// selectedId check is what makes that second firing a no-op instead of a
+// duplicate load.
 watch(
-  [replays, viewer],
-  ([list, viewerInstance]) => {
-    if (initialReplayHandled || !viewerInstance || list.length === 0) return
-    initialReplayHandled = true
+  [() => route.params.id, viewer],
+  ([wanted, viewerInstance]) => {
+    if (typeof wanted !== 'string' || !viewerInstance || selectedId.value === wanted) return
 
-    const wanted = route.params.id
-    if (typeof wanted !== 'string') return
-
-    const match = list.find(replay => replay.id === wanted)
-    if (match) loadFromList(match, { updateUrl: false })
+    selectedId.value = wanted
+    playReplay(`/api/gokz-replays/${wanted}`)
   },
   { immediate: true }
 )
@@ -93,6 +144,7 @@ function onReplayLoaded(info: LoadedReplayInfo) {
     <div class="flex flex-1 gap-4 overflow-hidden p-4">
       <div class="relative min-w-0 flex-1 overflow-hidden rounded-lg border bg-black">
         <GokzViewer
+          :key="viewerKey"
           ref="viewer"
           @replay-loaded="onReplayLoaded"
           @playing-changed="(value) => (isPlaying = value)"
@@ -101,6 +153,7 @@ function onReplayLoaded(info: LoadedReplayInfo) {
 
       <div class="flex w-80 shrink-0 flex-col gap-4 overflow-hidden">
         <GokzReplayList
+          v-model:filters="replayFilters"
           :replays="replays"
           :selected-id="selectedId"
           :loading="replaysPending"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useGokzEngine } from '~/composables/useGokzEngine'
 
 const props = withDefaults(
@@ -66,6 +66,21 @@ onMounted(async () => {
     loadReplay(pendingUrl)
     pendingUrl = null
   }
+})
+
+onUnmounted(() => {
+  // The vendored engine's Map.unload() is unimplemented - it throws if you
+  // load a second replay into the same viewer instance - so switching
+  // replays works by remounting this whole component (see :key in the
+  // parent page) rather than reusing one. But the engine also has no
+  // dispose/cancelAnimationFrame path, so the outgoing instance's render
+  // loop would otherwise keep running forever against a detached canvas.
+  // Losing the GL context is what actually stops it (WebGL calls become
+  // no-ops per spec once the context is lost) and frees it immediately
+  // instead of waiting on GC - WebGL contexts are capped per tab (~16 in
+  // Chrome), and remounting on every replay would exhaust that quickly
+  // otherwise.
+  viewer?.context?.getExtension('WEBGL_lose_context')?.loseContext()
 })
 
 function loadReplay(url: string) {

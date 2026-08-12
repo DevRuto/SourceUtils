@@ -3,7 +3,8 @@ export interface GokzReplay {
   map: string
   player: string
   time: string
-  mode: 'KZT' | 'SKZ' | 'VNL'
+  mode: string
+  stage: number
   pro: boolean
   url: string
 }

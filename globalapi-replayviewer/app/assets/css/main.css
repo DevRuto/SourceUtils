@@ -48,6 +48,7 @@
 }
 
 :root {
+    color-scheme: light;
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -83,6 +84,11 @@
 }
 
 .dark {
+    /* Without this, native form controls (the mode <select>'s dropdown
+       popup, scrollbars, etc.) render with the browser's light-theme
+       defaults regardless of our own CSS, since the app forces dark via
+       htmlAttrs but never told the browser that. */
+    color-scheme: dark;
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);
